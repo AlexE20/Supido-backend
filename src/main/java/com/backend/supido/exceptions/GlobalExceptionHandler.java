@@ -1,6 +1,6 @@
 package com.backend.supido.exceptions;
 
-import com.backend.supido.domain.dto.response.ApiErrorResponse;
+import com.backend.supido.common.ApiErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
