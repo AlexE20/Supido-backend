@@ -4,7 +4,7 @@ import com.backend.supido.common.mappers.RestaurantMapper;
 import com.backend.supido.domain.dto.request.RestaurantDTORequest;
 import com.backend.supido.domain.dto.response.restaurant.RestaurantDTOResponse;
 import com.backend.supido.domain.entities.Restaurant;
-import com.backend.supido.exceptions.RestaurantNotFoundException;
+import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.repositories.restaurant.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class RestaurantServiceImpl implements RestaurantService {
     @Override
     public RestaurantDTOResponse findRestaurantById(Long id) {
         Restaurant restaurant = restaurantRepository.findById(id)
-                .orElseThrow(() -> new RestaurantNotFoundException("Restaurant not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id " + id));
         return RestaurantMapper.toResponse(restaurant);
     }
 
@@ -40,7 +40,7 @@ public class RestaurantServiceImpl implements RestaurantService {
     @Override
     public RestaurantDTOResponse updateRestaurant(Long id, RestaurantDTORequest request) {
         Restaurant restaurant = restaurantRepository.findById(id)
-                .orElseThrow(() -> new RestaurantNotFoundException("Restaurant not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id " + id));
 
         restaurant.setName(request.name());
         restaurant.setCategory(request.category());
@@ -57,7 +57,7 @@ public class RestaurantServiceImpl implements RestaurantService {
     @Override
     public void deleteRestaurant(Long id) {
         if (!restaurantRepository.existsById(id)) {
-            throw new RestaurantNotFoundException("Restaurant not found with id " + id);
+            throw new ResourceNotFoundException("Restaurant not found with id " + id);
         }
         restaurantRepository.deleteById(id);
     }

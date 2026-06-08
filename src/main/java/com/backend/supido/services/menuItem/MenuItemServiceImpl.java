@@ -5,8 +5,7 @@ import com.backend.supido.domain.dto.request.MenuItemDTORequest;
 import com.backend.supido.domain.dto.response.menuItem.MenuItemDTOResponse;
 import com.backend.supido.domain.entities.MenuItem;
 import com.backend.supido.domain.entities.Restaurant;
-import com.backend.supido.exceptions.MenuItemNotFoundException;
-import com.backend.supido.exceptions.RestaurantNotFoundException;
+import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.repositories.menuItem.MenuItemRepository;
 import com.backend.supido.repositories.restaurant.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,7 @@ public class MenuItemServiceImpl implements MenuItemService {
     @Override
     public MenuItemDTOResponse createMenuItem(Long restaurantId, MenuItemDTORequest request) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new RestaurantNotFoundException("Restaurant not found with id " + restaurantId));
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id " + restaurantId));
 
         MenuItem menuItem = MenuItemMapper.toEntity(request);
         menuItem.setRestaurant(restaurant);
@@ -34,14 +33,14 @@ public class MenuItemServiceImpl implements MenuItemService {
     @Override
     public MenuItemDTOResponse findMenuItemById(Long id) {
         MenuItem menuItem = menuItemRepository.findById(id)
-                .orElseThrow(() -> new MenuItemNotFoundException("Menu item not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id " + id));
         return MenuItemMapper.toResponse(menuItem);
     }
 
     @Override
     public List<MenuItemDTOResponse> findAllByRestaurant(Long restaurantId) {
         if (!restaurantRepository.existsById(restaurantId)) {
-            throw new RestaurantNotFoundException("Restaurant not found with id " + restaurantId);
+            throw new ResourceNotFoundException("Restaurant not found with id " + restaurantId);
         }
         return menuItemRepository.findByRestaurantId(restaurantId)
                 .stream()
@@ -52,7 +51,7 @@ public class MenuItemServiceImpl implements MenuItemService {
     @Override
     public MenuItemDTOResponse updateMenuItem(Long id, MenuItemDTORequest request) {
         MenuItem menuItem = menuItemRepository.findById(id)
-                .orElseThrow(() -> new MenuItemNotFoundException("Menu item not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id " + id));
 
         menuItem.setName(request.name());
         menuItem.setDescription(request.description());
@@ -66,7 +65,7 @@ public class MenuItemServiceImpl implements MenuItemService {
     @Override
     public void deleteMenuItem(Long id) {
         if (!menuItemRepository.existsById(id)) {
-            throw new MenuItemNotFoundException("Menu item not found with id " + id);
+            throw new ResourceNotFoundException("Menu item not found with id " + id);
         }
         menuItemRepository.deleteById(id);
     }
@@ -74,7 +73,7 @@ public class MenuItemServiceImpl implements MenuItemService {
     @Override
     public MenuItemDTOResponse toggleAvailability(Long id) {
         MenuItem menuItem = menuItemRepository.findById(id)
-                .orElseThrow(() -> new MenuItemNotFoundException("Menu item not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id " + id));
 
         menuItem.setAvailable(!menuItem.getAvailable());
 
