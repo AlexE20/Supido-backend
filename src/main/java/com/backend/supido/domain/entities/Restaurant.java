@@ -45,15 +45,11 @@ public class Restaurant {
     @Column(name = "photo_url")
     private String photoUrl;
 
-    @Column(name = "active")
-    private Boolean active;
-
     @Column(name = "average_rating")
     private Double averageRating;
 
     @PrePersist
     protected void onCreate() {
-        if (this.active == null) this.active = true;
         if (this.averageRating == null) this.averageRating = 0.0;
     }
 

@@ -15,9 +15,12 @@ public record RestaurantDTORequest(
         String address,
 
         Double latitude,
+
         Double longitude,
 
         String openingTime,
+
         String closingTime,
+
         String photoUrl
 ) {}
