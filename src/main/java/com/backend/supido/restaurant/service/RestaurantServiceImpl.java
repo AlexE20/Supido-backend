@@ -1,5 +1,6 @@
 package com.backend.supido.restaurant.service;
 
+import com.backend.supido.common.PageableResponse;
 import com.backend.supido.restaurant.mapper.RestaurantMapper;
 import com.backend.supido.restaurant.domain.dto.request.RestaurantDTORequest;
 import com.backend.supido.restaurant.domain.dto.response.RestaurantDTOResponse;
@@ -7,6 +8,10 @@ import com.backend.supido.restaurant.domain.entity.Restaurant;
 import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.restaurant.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -30,11 +35,26 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
-    public List<RestaurantDTOResponse> findAllRestaurants() {
-        return restaurantRepository.findAll()
-                .stream()
-                .map(RestaurantMapper::toResponse)
-                .toList();
+    public PageableResponse<RestaurantDTOResponse> findAllRestaurants(int page, int size, String sortBy, String sortOrder) {
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ?
+                Sort.by(sortBy).descending() :
+                Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<RestaurantDTOResponse> restaurantPage = restaurantRepository.findAll(pageable)
+                .map(RestaurantMapper::toResponse);
+
+        if (restaurantPage.getTotalElements() == 0)
+            throw new ResourceNotFoundException("No restaurants found");
+
+        return PageableResponse.<RestaurantDTOResponse>builder()
+                .content(restaurantPage.getContent())
+                .page(restaurantPage.getNumber())
+                .size(restaurantPage.getSize())
+                .totalElements(restaurantPage.getTotalElements())
+                .totalPages(restaurantPage.getTotalPages())
+                .last(restaurantPage.isLast())
+                .build();
     }
 
     @Override

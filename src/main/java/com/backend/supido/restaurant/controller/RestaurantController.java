@@ -20,9 +20,14 @@ public class RestaurantController {
     private final RestaurantService restaurantService;
 
     @GetMapping
-    public ResponseEntity<GeneralResponse> findAll() {
+    public ResponseEntity<GeneralResponse> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortOrder
+    ) {
         return buildResponse("All restaurants found", HttpStatus.OK,
-                restaurantService.findAllRestaurants());
+                restaurantService.findAllRestaurants(page, size, sortBy, sortOrder));
     }
 
     @GetMapping("/{id}")

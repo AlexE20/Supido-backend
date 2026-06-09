@@ -20,9 +20,15 @@ public class MenuItemController {
     private final MenuItemService menuItemService;
 
     @GetMapping
-    public ResponseEntity<GeneralResponse> findAll(@PathVariable Long restaurantId) {
+    public ResponseEntity<GeneralResponse> findAll(
+            @PathVariable Long restaurantId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortOrder
+    ) {
         return buildResponse("All menu items found for restaurant: " + restaurantId, HttpStatus.OK,
-                menuItemService.findAllByRestaurant(restaurantId));
+                menuItemService.findAllByRestaurant(restaurantId, page, size, sortBy, sortOrder));
     }
 
         @GetMapping("/{id}")
