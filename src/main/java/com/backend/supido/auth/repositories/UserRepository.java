@@ -1,6 +1,6 @@
-package com.backend.supido.repositories;
+package com.backend.supido.auth.repositories;
 
-import com.backend.supido.domain.entities.User;
+import com.backend.supido.auth.domain.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
