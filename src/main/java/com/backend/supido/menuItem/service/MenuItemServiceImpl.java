@@ -31,11 +31,10 @@ public class MenuItemServiceImpl implements MenuItemService {
     }
 
     @Override
-    public MenuItemDTOResponse findMenuItemById(Long id) {
-        MenuItem menuItem = menuItemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id " + id));
-        return MenuItemMapper.toResponse(menuItem);
+    public MenuItemDTOResponse findMenuItemById(Long restaurantId, Long id) {
+        return MenuItemMapper.toResponse(findMenuItemBelongingToRestaurant(restaurantId, id));
     }
+
 
     @Override
     public List<MenuItemDTOResponse> findAllByRestaurant(Long restaurantId) {
@@ -49,34 +48,39 @@ public class MenuItemServiceImpl implements MenuItemService {
     }
 
     @Override
-    public MenuItemDTOResponse updateMenuItem(Long id, MenuItemDTORequest request) {
-        MenuItem menuItem = menuItemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id " + id));
-
+    public MenuItemDTOResponse updateMenuItem(Long restaurantId, Long id, MenuItemDTORequest request) {
+        MenuItem menuItem = findMenuItemBelongingToRestaurant(restaurantId, id);
         menuItem.setName(request.name());
         menuItem.setDescription(request.description());
         menuItem.setPrice(request.price());
         menuItem.setCategory(request.category());
         menuItem.setPhotoUrl(request.photoUrl());
-
         return MenuItemMapper.toResponse(menuItemRepository.save(menuItem));
     }
 
     @Override
-    public void deleteMenuItem(Long id) {
-        if (!menuItemRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Menu item not found with id " + id);
-        }
+    public void deleteMenuItem(Long restaurantId, Long id) {
+        findMenuItemBelongingToRestaurant(restaurantId, id);
         menuItemRepository.deleteById(id);
     }
 
     @Override
-    public MenuItemDTOResponse toggleAvailability(Long id) {
-        MenuItem menuItem = menuItemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id " + id));
-
+    public MenuItemDTOResponse toggleAvailability(Long restaurantId, Long id) {
+        MenuItem menuItem = findMenuItemBelongingToRestaurant(restaurantId, id);
         menuItem.setAvailable(!menuItem.getAvailable());
-
         return MenuItemMapper.toResponse(menuItemRepository.save(menuItem));
+    }
+
+    private MenuItem findMenuItemBelongingToRestaurant(Long restaurantId, Long menuItemId) {
+        if (!restaurantRepository.existsById(restaurantId)) {
+            throw new ResourceNotFoundException("Restaurant not found with id " + restaurantId);
+        }
+        MenuItem menuItem = menuItemRepository.findById(menuItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id " + menuItemId));
+
+        if (!menuItem.getRestaurant().getId().equals(restaurantId)) {
+            throw new ResourceNotFoundException("Menu item " + menuItemId + " does not belong to restaurant " + restaurantId);
+        }
+        return menuItem;
     }
 }

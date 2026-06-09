@@ -5,8 +5,12 @@ import com.backend.supido.restaurant.domain.dto.request.RestaurantDTORequest;
 import com.backend.supido.restaurant.service.RestaurantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/restaurants")
@@ -17,59 +21,58 @@ public class RestaurantController {
 
     @GetMapping
     public ResponseEntity<GeneralResponse> findAll() {
-        return ResponseEntity.ok(GeneralResponse.builder()
-                .data(restaurantService.findAllRestaurants())
-                .message("All restaurants found")
-                .build());
+        return buildResponse("All restaurants found", HttpStatus.OK,
+                restaurantService.findAllRestaurants());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<GeneralResponse> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(GeneralResponse.builder()
-                .data(restaurantService.findRestaurantById(id))
-                .message("Restaurant found with id: " + id)
-                .build());
+        return buildResponse("Restaurant found with id: " + id, HttpStatus.OK,
+                restaurantService.findRestaurantById(id));
     }
 
     @GetMapping("/search")
     public ResponseEntity<GeneralResponse> findByName(@RequestParam String name) {
-        return ResponseEntity.ok(GeneralResponse.builder()
-                .data(restaurantService.findByName(name))
-                .message("Restaurants found with name: " + name)
-                .build());
+        return buildResponse("Restaurants found with name: " + name, HttpStatus.OK,
+                restaurantService.findByName(name));
     }
 
     @GetMapping("/category/{category}")
     public ResponseEntity<GeneralResponse> findByCategory(@PathVariable String category) {
-        return ResponseEntity.ok(GeneralResponse.builder()
-                .data(restaurantService.findByCategory(category))
-                .message("Restaurants found with category: " + category)
-                .build());
+        return buildResponse("Restaurants found with category: " + category, HttpStatus.OK,
+                restaurantService.findByCategory(category));
     }
 
     @PostMapping
     public ResponseEntity<GeneralResponse> create(@Valid @RequestBody RestaurantDTORequest request) {
-        return ResponseEntity.ok(GeneralResponse.builder()
-                .data(restaurantService.createRestaurant(request))
-                .message("Restaurant has been created")
-                .build());
+        return buildResponse("Restaurant has been created", HttpStatus.CREATED,
+                restaurantService.createRestaurant(request));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<GeneralResponse> update(@PathVariable Long id,
                                                   @Valid @RequestBody RestaurantDTORequest request) {
-        return ResponseEntity.ok(GeneralResponse.builder()
-                .data(restaurantService.updateRestaurant(id, request))
-                .message("Restaurant has been updated")
-                .build());
+        return buildResponse("Restaurant has been updated", HttpStatus.OK,
+                restaurantService.updateRestaurant(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<GeneralResponse> delete(@PathVariable Long id) {
         restaurantService.deleteRestaurant(id);
-        return ResponseEntity.ok(GeneralResponse.builder()
-                .data(null)
-                .message("Restaurant has been deleted")
-                .build());
+        return buildResponse("Restaurant has been deleted", HttpStatus.OK, null);
+    }
+
+    public ResponseEntity<GeneralResponse> buildResponse(String message, HttpStatus status, Object data) {
+        String uri = ServletUriComponentsBuilder.fromCurrentRequestUri().build().getPath();
+        return ResponseEntity
+                .status(status)
+                .body(GeneralResponse.builder()
+                        .uri(uri)
+                        .message(message)
+                        .status(status.value())
+                        .time(LocalDateTime.now())
+                        .data(data)
+                        .build()
+                );
     }
 }

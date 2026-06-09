@@ -7,9 +7,9 @@ import java.util.List;
 
 public interface MenuItemService {
     MenuItemDTOResponse createMenuItem(Long restaurantId, MenuItemDTORequest request);
-    MenuItemDTOResponse findMenuItemById(Long id);
+    MenuItemDTOResponse findMenuItemById(Long restaurantId, Long id);
     List<MenuItemDTOResponse> findAllByRestaurant(Long restaurantId);
-    MenuItemDTOResponse updateMenuItem(Long id, MenuItemDTORequest request);
-    void deleteMenuItem(Long id);
-    MenuItemDTOResponse toggleAvailability(Long id);
+    MenuItemDTOResponse updateMenuItem(Long restaurantId, Long id, MenuItemDTORequest request);
+    void deleteMenuItem(Long restaurantId, Long id);
+    MenuItemDTOResponse toggleAvailability(Long restaurantId, Long id);
 }
