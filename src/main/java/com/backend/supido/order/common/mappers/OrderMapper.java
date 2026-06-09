@@ -4,13 +4,14 @@ import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
 import com.backend.supido.order.domain.dto.response.OrderResponse;
 import com.backend.supido.order.domain.entity.Order;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class OrderMapper {
 
-    public Order toEntityCreate(CreateOrderRequest request) {
+    public static Order toEntityCreate(CreateOrderRequest request) {
         return Order.builder()
                 .userId(request.userId())
                 .restaurantId(request.restaurantId())
@@ -20,7 +21,7 @@ public class OrderMapper {
                 .build();
     }
 
-    public Order toEntityUpdate(UpdateOrderRequest request) {
+    public static Order toEntityUpdate(UpdateOrderRequest request) {
         return Order.builder()
                 .couponId(request.couponId())
                 .deliveryAddress(request.deliveryAddress())
@@ -30,7 +31,7 @@ public class OrderMapper {
                 .build();
     }
 
-    public OrderResponse toDto(Order order) {
+    public static OrderResponse toDto(Order order) {
         return new OrderResponse(
                 order.getId(),
                 order.getUserId(),
