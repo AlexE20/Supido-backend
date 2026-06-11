@@ -1,5 +1,6 @@
 package com.backend.supido.menuItem.service;
 
+import com.backend.supido.common.PageableResponse;
 import com.backend.supido.menuItem.mapper.MenuItemMapper;
 import com.backend.supido.menuItem.domain.dto.request.MenuItemDTORequest;
 import com.backend.supido.menuItem.domain.dto.response.MenuItemDTOResponse;
@@ -9,6 +10,10 @@ import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.menuItem.repository.MenuItemRepository;
 import com.backend.supido.restaurant.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -31,52 +36,72 @@ public class MenuItemServiceImpl implements MenuItemService {
     }
 
     @Override
-    public MenuItemDTOResponse findMenuItemById(Long id) {
-        MenuItem menuItem = menuItemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id " + id));
-        return MenuItemMapper.toResponse(menuItem);
+    public MenuItemDTOResponse findMenuItemById(Long restaurantId, Long id) {
+        return MenuItemMapper.toResponse(findMenuItemBelongingToRestaurant(restaurantId, id));
     }
 
+
     @Override
-    public List<MenuItemDTOResponse> findAllByRestaurant(Long restaurantId) {
+    public PageableResponse<MenuItemDTOResponse> findAllByRestaurant(Long restaurantId, int page, int size, String sortBy, String sortOrder) {
         if (!restaurantRepository.existsById(restaurantId)) {
             throw new ResourceNotFoundException("Restaurant not found with id " + restaurantId);
         }
-        return menuItemRepository.findByRestaurantId(restaurantId)
-                .stream()
-                .map(MenuItemMapper::toResponse)
-                .toList();
+
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ?
+                Sort.by(sortBy).descending() :
+                Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<MenuItemDTOResponse> menuItemPage = menuItemRepository.findByRestaurantId(restaurantId, pageable)
+                .map(MenuItemMapper::toResponse);
+
+        if (menuItemPage.getTotalElements() == 0)
+            throw new ResourceNotFoundException("No menu items found for restaurant " + restaurantId);
+
+        return PageableResponse.<MenuItemDTOResponse>builder()
+                .content(menuItemPage.getContent())
+                .page(menuItemPage.getNumber())
+                .size(menuItemPage.getSize())
+                .totalElements(menuItemPage.getTotalElements())
+                .totalPages(menuItemPage.getTotalPages())
+                .last(menuItemPage.isLast())
+                .build();
     }
 
     @Override
-    public MenuItemDTOResponse updateMenuItem(Long id, MenuItemDTORequest request) {
-        MenuItem menuItem = menuItemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id " + id));
-
+    public MenuItemDTOResponse updateMenuItem(Long restaurantId, Long id, MenuItemDTORequest request) {
+        MenuItem menuItem = findMenuItemBelongingToRestaurant(restaurantId, id);
         menuItem.setName(request.name());
         menuItem.setDescription(request.description());
         menuItem.setPrice(request.price());
         menuItem.setCategory(request.category());
         menuItem.setPhotoUrl(request.photoUrl());
-
         return MenuItemMapper.toResponse(menuItemRepository.save(menuItem));
     }
 
     @Override
-    public void deleteMenuItem(Long id) {
-        if (!menuItemRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Menu item not found with id " + id);
-        }
+    public void deleteMenuItem(Long restaurantId, Long id) {
+        findMenuItemBelongingToRestaurant(restaurantId, id);
         menuItemRepository.deleteById(id);
     }
 
     @Override
-    public MenuItemDTOResponse toggleAvailability(Long id) {
-        MenuItem menuItem = menuItemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id " + id));
-
+    public MenuItemDTOResponse toggleAvailability(Long restaurantId, Long id) {
+        MenuItem menuItem = findMenuItemBelongingToRestaurant(restaurantId, id);
         menuItem.setAvailable(!menuItem.getAvailable());
-
         return MenuItemMapper.toResponse(menuItemRepository.save(menuItem));
+    }
+
+    private MenuItem findMenuItemBelongingToRestaurant(Long restaurantId, Long menuItemId) {
+        if (!restaurantRepository.existsById(restaurantId)) {
+            throw new ResourceNotFoundException("Restaurant not found with id " + restaurantId);
+        }
+        MenuItem menuItem = menuItemRepository.findById(menuItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id " + menuItemId));
+
+        if (!menuItem.getRestaurant().getId().equals(restaurantId)) {
+            throw new ResourceNotFoundException("Menu item " + menuItemId + " does not belong to restaurant " + restaurantId);
+        }
+        return menuItem;
     }
 }
