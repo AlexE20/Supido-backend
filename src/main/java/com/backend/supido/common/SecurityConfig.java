@@ -1,4 +1,4 @@
-package com.backend.supido.config;
+package com.backend.supido.common;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
