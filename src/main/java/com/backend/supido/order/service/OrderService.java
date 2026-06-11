@@ -1,5 +1,6 @@
 package com.backend.supido.order.service;
 
+import com.backend.supido.common.PageableResponse;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
 import com.backend.supido.order.domain.dto.response.OrderResponse;
@@ -25,7 +26,7 @@ public interface OrderService {
     OrderResponse assignDeliveryPerson(Long id, Long deliveryPersonId);
 
     // Consultas por relación
-    List<OrderResponse> findByUserId(Long userId);
-    List<OrderResponse> findByRestaurantId(Long restaurantId);
-    List<OrderResponse> findByDeliveryPersonId(Long deliveryPersonId);
+    PageableResponse<OrderResponse> findByUserId(Long userId, int page, int size);
+    PageableResponse<OrderResponse> findByRestaurantId(Long restaurantId, int page, int size);
+    PageableResponse<OrderResponse> findByDeliveryPersonId(Long deliveryPersonId, int page, int size);
 }
