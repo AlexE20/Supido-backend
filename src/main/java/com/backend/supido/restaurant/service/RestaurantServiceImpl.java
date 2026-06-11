@@ -23,6 +23,9 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public RestaurantDTOResponse createRestaurant(RestaurantDTORequest request) {
+        if (restaurantRepository.existsByName(request.name())) {
+            throw new IllegalArgumentException("Restaurant with name " + request.name() + " already exists");
+        }
         Restaurant restaurant = RestaurantMapper.toEntity(request);
         return RestaurantMapper.toResponse(restaurantRepository.save(restaurant));
     }
@@ -61,6 +64,10 @@ public class RestaurantServiceImpl implements RestaurantService {
     public RestaurantDTOResponse updateRestaurant(Long id, RestaurantDTORequest request) {
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id " + id));
+
+        if (restaurantRepository.existsByNameAndIdNot(request.name(), id)) {
+            throw new IllegalArgumentException("Restaurant with name '" + request.name() + "' already exists");
+        }
 
         restaurant.setName(request.name());
         restaurant.setCategory(request.category());

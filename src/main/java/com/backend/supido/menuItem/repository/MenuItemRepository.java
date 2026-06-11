@@ -11,5 +11,6 @@ import org.springframework.data.domain.Pageable;
 public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
 
     Page<MenuItem> findByRestaurantId(Long restaurantId, Pageable pageable);
-    List<MenuItem> findByRestaurantIdAndAvailable(Long restaurantId, Boolean available);
+    boolean existsByNameAndRestaurantId(String name, Long restaurantId);
+    boolean existsByNameAndRestaurantIdAndIdNot(String name, Long restaurantId, Long id);
 }
