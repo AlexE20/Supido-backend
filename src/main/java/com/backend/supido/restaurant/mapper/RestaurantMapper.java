@@ -3,8 +3,7 @@ package com.backend.supido.restaurant.mapper;
 import com.backend.supido.restaurant.domain.dto.request.RestaurantDTORequest;
 import com.backend.supido.restaurant.domain.dto.response.RestaurantDTOResponse;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
-
-import java.time.LocalTime;
+import com.backend.supido.common.utils.RestaurantUtils;
 
 public class RestaurantMapper {
 
@@ -22,10 +21,6 @@ public class RestaurantMapper {
     }
 
     public static RestaurantDTOResponse toResponse(Restaurant restaurant) {
-        LocalTime now = LocalTime.now();
-        LocalTime opening = LocalTime.parse(restaurant.getOpeningTime());
-        LocalTime closing = LocalTime.parse(restaurant.getClosingTime());
-        boolean isOpen = !now.isBefore(opening) && !now.isAfter(closing);
         return new RestaurantDTOResponse(
                 restaurant.getId(),
                 restaurant.getName(),
@@ -37,7 +32,7 @@ public class RestaurantMapper {
                 restaurant.getClosingTime(),
                 restaurant.getPhotoUrl(),
                 restaurant.getAverageRating(),
-                isOpen
+                RestaurantUtils.isOpen(restaurant)
         );
     }
 }

@@ -1,6 +1,7 @@
 package com.backend.supido.order.domain.dto.response;
 
 
+import com.backend.supido.order.domain.dto.RestaurantSummaryDTO;
 import lombok.Builder;
 
 import java.math.BigDecimal;
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 public record OrderResponse(
         Long id,
         Long userId,
-        Long restaurantId,
+        RestaurantSummaryDTO restaurant,
         Long deliveryPersonId,
         Long cuponId,
         String status,
