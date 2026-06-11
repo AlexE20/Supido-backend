@@ -13,5 +13,6 @@ public record RestaurantDTOResponse(
         String openingTime,
         String closingTime,
         String photoUrl,
-        Double averageRating
+        Double averageRating,
+        Boolean isOpen
 ) {}
