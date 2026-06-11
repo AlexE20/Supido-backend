@@ -1,5 +1,6 @@
 package com.backend.supido.order.domain.entity;
 
+import com.backend.supido.restaurant.domain.entity.Restaurant;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,8 +24,9 @@ public class Order {
     @Column(name = "userId")
     private long userId;
 
-    @Column(name = "restaurantId")
-    private long restaurantId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "restaurant_id")
+    private Restaurant restaurant;
 
     @Column(name = "deliveryPersonId")
     private Long deliveryPersonId;

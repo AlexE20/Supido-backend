@@ -12,4 +12,6 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     Page<Restaurant> findAll(Pageable pageable);
     List<Restaurant> findByCategory(String category);
     List<Restaurant> findByNameContainingIgnoreCase(String name);
+    boolean existsByName(String name);
+    boolean existsByNameAndIdNot(String name, Long id);
 }

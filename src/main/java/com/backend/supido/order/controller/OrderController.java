@@ -4,7 +4,6 @@ import com.backend.supido.common.GeneralResponse;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
 import com.backend.supido.order.service.OrderService;
-import com.backend.supido.order.service.OrderServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +18,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class OrderController {
 
-    private final OrderServiceImpl orderService;
+    private final OrderService orderService;
 
     @PostMapping
     public ResponseEntity<GeneralResponse> create(@Valid @RequestBody CreateOrderRequest request) {
@@ -41,7 +40,7 @@ public class OrderController {
         return buildResponse("Order updated successfully", HttpStatus.OK, orderService.update(id, request));
     }
 
-    @DeleteMapping("/{id}")
+    @PatchMapping("/{id}/cancel")
     public ResponseEntity<GeneralResponse> cancel(@PathVariable Long id) {
         orderService.cancel(id);
         return buildResponse("Order cancelled successfully", HttpStatus.OK, null);

@@ -1,6 +1,7 @@
 package com.backend.supido.order.service;
 
 import com.backend.supido.common.PageableResponse;
+import com.backend.supido.common.utils.RestaurantUtils;
 import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.order.common.mappers.OrderMapper;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
@@ -8,30 +9,38 @@ import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
 import com.backend.supido.order.domain.dto.response.OrderResponse;
 import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.order.repository.OrderRepository;
+import com.backend.supido.restaurant.domain.entity.Restaurant;
+import com.backend.supido.restaurant.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.backend.supido.order.common.mappers.OrderMapper;
 
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
+    private final RestaurantRepository restaurantRepository;
 
     @Override
     public OrderResponse create(CreateOrderRequest request) {
+        Restaurant restaurant = restaurantRepository.findById(request.restaurantId())
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id: " + request.restaurantId()));
+
+        if (!RestaurantUtils.isOpen(restaurant)) {
+            throw new IllegalArgumentException("Restaurant is currently closed");
+        }
+
         Order order = OrderMapper.toEntityCreate(request);
+        order.setRestaurant(restaurant);
         order.setStatus("PENDING");
         order.setCreatedAt(LocalDateTime.now());
-        Order saved = orderRepository.save(order);
-        return OrderMapper.toDto(saved);
+        return OrderMapper.toDto(orderRepository.save(order));
     }
 
     @Override
@@ -56,7 +65,7 @@ public class OrderServiceImpl implements OrderService {
         Order updatedOrder = OrderMapper.toEntityUpdate(request);
         updatedOrder.setId(order.getId());
         updatedOrder.setUserId(order.getUserId());
-        updatedOrder.setRestaurantId(order.getRestaurantId());
+        updatedOrder.setRestaurant(order.getRestaurant());
         updatedOrder.setSubtotal(order.getSubtotal());
         updatedOrder.setShippingCost(order.getShippingCost());
         updatedOrder.setDiscount(order.getDiscount());
@@ -70,8 +79,8 @@ public class OrderServiceImpl implements OrderService {
     public void cancel(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-        if (order.getStatus().equals("DELIVERED")) {
-            throw new IllegalArgumentException("Cannot cancel an order that has already been delivered");
+        if (!order.getStatus().equals("PENDING")) {
+            throw new IllegalArgumentException("Order can only be cancelled when in PENDING status");
         }
         order.setStatus("CANCELLED");
         orderRepository.save(order);
@@ -137,9 +146,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public PageableResponse<OrderResponse> findByRestaurantId(Long restaurantId, int page, int size) {
-        Page<Order> orderPage = orderRepository.findByRestaurantId(restaurantId, PageRequest.of(page, size));
-        return buildPageableResponse(orderPage);
+    public List<OrderResponse> findByRestaurantId(Long restaurantId) {
+        if (!restaurantRepository.existsById(restaurantId)) {
+            throw new ResourceNotFoundException("Restaurant not found with id: " + restaurantId);
+        }
+        return orderRepository.findByRestaurantId(restaurantId)
+                .stream()
+                .map(OrderMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override

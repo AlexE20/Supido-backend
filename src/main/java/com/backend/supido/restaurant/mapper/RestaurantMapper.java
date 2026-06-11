@@ -3,6 +3,7 @@ package com.backend.supido.restaurant.mapper;
 import com.backend.supido.restaurant.domain.dto.request.RestaurantDTORequest;
 import com.backend.supido.restaurant.domain.dto.response.RestaurantDTOResponse;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
+import com.backend.supido.common.utils.RestaurantUtils;
 
 public class RestaurantMapper {
 
@@ -30,7 +31,8 @@ public class RestaurantMapper {
                 restaurant.getOpeningTime(),
                 restaurant.getClosingTime(),
                 restaurant.getPhotoUrl(),
-                restaurant.getAverageRating()
+                restaurant.getAverageRating(),
+                RestaurantUtils.isOpen(restaurant)
         );
     }
 }
