@@ -26,6 +26,7 @@ public class SecurityConfiguration {
 
     private final UserDetailsService userService;
     private final JwtFilter jwtFilter;
+    private final PasswordEncoder passwordEncoder;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -47,17 +48,12 @@ public class SecurityConfiguration {
     @Bean
     public AuthenticationProvider authenticationProvider() {
             DaoAuthenticationProvider authenticator = new DaoAuthenticationProvider(userService);
-        authenticator.setPasswordEncoder(passwordEncoder());
+        authenticator.setPasswordEncoder(passwordEncoder);
         return authenticator;
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 }

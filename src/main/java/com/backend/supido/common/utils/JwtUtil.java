@@ -1,4 +1,4 @@
-package com.backend.supido.auth.common.utils;
+package com.backend.supido.common.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

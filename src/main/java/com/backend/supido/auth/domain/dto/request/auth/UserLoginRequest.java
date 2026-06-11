@@ -1,4 +1,4 @@
-package com.backend.supido.auth.domain.dto.request;
+package com.backend.supido.auth.domain.dto.request.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginRequest {
+public class UserLoginRequest {
 @NotBlank(message = "El usuario es obligatorio.")
     private String username;
 
