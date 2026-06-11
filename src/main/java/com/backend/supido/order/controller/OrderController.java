@@ -32,10 +32,8 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<GeneralResponse> findAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findAll(page, size));
+    public ResponseEntity<GeneralResponse> findAll() {
+        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findAll());
     }
 
     @PutMapping("/{id}")
@@ -76,27 +74,18 @@ public class OrderController {
 
     // Consultas por relación
     @GetMapping("/user/{userId}")
-    public ResponseEntity<GeneralResponse> findByUserId(
-            @PathVariable Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByUserId(userId, page, size));
+    public ResponseEntity<GeneralResponse> findByUserId(@PathVariable Long userId) {
+        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByUserId(userId));
     }
 
     @GetMapping("/restaurant/{restaurantId}")
-    public ResponseEntity<GeneralResponse> findByRestaurantId(
-            @PathVariable Long restaurantId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByRestaurantId(restaurantId, page, size));
+    public ResponseEntity<GeneralResponse> findByRestaurantId(@PathVariable Long restaurantId) {
+        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByRestaurantId(restaurantId));
     }
 
     @GetMapping("/delivery-person/{deliveryPersonId}")
-    public ResponseEntity<GeneralResponse> findByDeliveryPersonId(
-            @PathVariable Long deliveryPersonId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByDeliveryPersonId(deliveryPersonId, page, size));
+    public ResponseEntity<GeneralResponse> findByDeliveryPersonId(@PathVariable Long deliveryPersonId) {
+        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByDeliveryPersonId(deliveryPersonId));
     }
 
     public ResponseEntity<GeneralResponse> buildResponse(String message, HttpStatus status, Object data){

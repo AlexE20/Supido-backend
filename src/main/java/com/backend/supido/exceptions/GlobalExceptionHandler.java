@@ -3,6 +3,8 @@ package com.backend.supido.exceptions;
 import com.backend.supido.common.ApiErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -49,5 +51,14 @@ public class GlobalExceptionHandler {
                         .uri(uri)
                         .build()
                 );
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleUsernameNotFound(UsernameNotFoundException e) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, e.getMessage());
+    }
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiErrorResponse> handleBadCredentials(BadCredentialsException e) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Credenciales inválidas");
     }
 }

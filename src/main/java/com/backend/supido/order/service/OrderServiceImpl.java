@@ -1,6 +1,5 @@
 package com.backend.supido.order.service;
 
-import com.backend.supido.common.PageableResponse;
 import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.order.common.mappers.OrderMapper;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
@@ -9,8 +8,6 @@ import com.backend.supido.order.domain.dto.response.OrderResponse;
 import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -42,19 +39,11 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public PageableResponse<OrderResponse> findAll(int page, int size) {
-        Page<Order> orderPage = orderRepository.findAll(PageRequest.of(page, size));
-        return PageableResponse.<OrderResponse>builder()
-                .content(orderPage.getContent()
-                        .stream()
-                        .map(OrderMapper::toDto)
-                        .collect(Collectors.toList()))
-                .page(orderPage.getNumber())
-                .size(orderPage.getSize())
-                .totalElements(orderPage.getTotalElements())
-                .totalPages(orderPage.getTotalPages())
-                .last(orderPage.isLast())
-                .build();
+    public List<OrderResponse> findAll() {
+        return orderRepository.findAll()
+                .stream()
+                .map(OrderMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -139,34 +128,26 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public PageableResponse<OrderResponse> findByUserId(Long userId, int page, int size) {
-        Page<Order> orderPage = orderRepository.findByUserId(userId, PageRequest.of(page, size));
-        return buildPageableResponse(orderPage);
+    public List<OrderResponse> findByUserId(Long userId) {
+        return orderRepository.findByUserId(userId)
+                .stream()
+                .map(OrderMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public PageableResponse<OrderResponse> findByRestaurantId(Long restaurantId, int page, int size) {
-        Page<Order> orderPage = orderRepository.findByRestaurantId(restaurantId, PageRequest.of(page, size));
-        return buildPageableResponse(orderPage);
+    public List<OrderResponse> findByRestaurantId(Long restaurantId) {
+        return orderRepository.findByRestaurantId(restaurantId)
+                .stream()
+                .map(OrderMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public PageableResponse<OrderResponse> findByDeliveryPersonId(Long deliveryPersonId, int page, int size) {
-        Page<Order> orderPage = orderRepository.findByDeliveryPersonId(deliveryPersonId, PageRequest.of(page, size));
-        return buildPageableResponse(orderPage);
-    }
-
-    private PageableResponse<OrderResponse> buildPageableResponse(Page<Order> orderPage) {
-        return PageableResponse.<OrderResponse>builder()
-                .content(orderPage.getContent()
-                        .stream()
-                        .map(OrderMapper::toDto)
-                        .collect(Collectors.toList()))
-                .page(orderPage.getNumber())
-                .size(orderPage.getSize())
-                .totalElements(orderPage.getTotalElements())
-                .totalPages(orderPage.getTotalPages())
-                .last(orderPage.isLast())
-                .build();
+    public List<OrderResponse> findByDeliveryPersonId(Long deliveryPersonId) {
+        return orderRepository.findByDeliveryPersonId(deliveryPersonId)
+                .stream()
+                .map(OrderMapper::toDto)
+                .collect(Collectors.toList());
     }
 }

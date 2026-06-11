@@ -1,6 +1,5 @@
 package com.backend.supido.common;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
