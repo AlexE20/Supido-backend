@@ -1,6 +1,7 @@
 package com.backend.supido.order.domain.dto.request;
 
 
+import com.backend.supido.orderItem.domain.dto.request.CreateOrderItemRequest;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Builder
 public record CreateOrderRequest(
@@ -25,5 +27,9 @@ public record CreateOrderRequest(
         String deliveryAddress,
 
         @DecimalMin(value = "0.0", inclusive = true, message = "tip must be >= 0")
-        BigDecimal tip
+        BigDecimal tip,
+
+        @NotEmpty(message = "order must have at least one item")
+        List<CreateOrderItemRequest> items
+
 ) {}
