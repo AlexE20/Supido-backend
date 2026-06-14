@@ -86,6 +86,9 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal discount = subtotal.multiply(coupon.getValue()
                     .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
             saved.setDiscount(discount);
+
+            coupon.setActive(false);
+            couponRepository.save(coupon);
         }
         // Calcular total con lo que tenemos por ahora (sin shippingCost todavia)
         BigDecimal tip = request.tip() != null ? request.tip() : BigDecimal.ZERO;
@@ -116,7 +119,6 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse update(Long id, UpdateOrderRequest request) {
         Order existing = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-
         Order updated = OrderMapper.toEntityUpdate(request);
         updated.setId(existing.getId());
         updated.setUserId(existing.getUserId());
@@ -125,9 +127,31 @@ public class OrderServiceImpl implements OrderService {
         updated.setShippingCost(existing.getShippingCost());
         updated.setCreatedAt(existing.getCreatedAt());
 
-        // recalcular total si cambia tip o discount
+        // cupón antes del cálculo
+        if (request.couponId() != null) {
+            if (existing.getCouponId() != null) {
+                throw new IllegalArgumentException("Order already has a coupon applied");
+            }
+            Coupon coupon = couponRepository.findById(request.couponId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Coupon not found with id: " + request.couponId()));
+            if (!coupon.getActive()) {
+                throw new IllegalArgumentException("Coupon is not active");
+            }
+            if (coupon.getExpiresAt().isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("Coupon has expired");
+            }
+            BigDecimal discount = existing.getSubtotal().multiply(coupon.getValue()
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
+            updated.setDiscount(discount);
+            updated.setCouponId(request.couponId());
+
+            coupon.setActive(false);
+            couponRepository.save(coupon);
+        }
+
+        // recalcular total con discount ya actualizado
         BigDecimal tip = request.tip() != null ? request.tip() : existing.getTip() != null ? existing.getTip() : BigDecimal.ZERO;
-        BigDecimal discount = existing.getDiscount() != null ? existing.getDiscount() : BigDecimal.ZERO;
+        BigDecimal discount = updated.getDiscount() != null ? updated.getDiscount() : existing.getDiscount() != null ? existing.getDiscount() : BigDecimal.ZERO;
         BigDecimal subtotal = existing.getSubtotal() != null ? existing.getSubtotal() : BigDecimal.ZERO;
 
         updated.setTip(tip);
@@ -135,6 +159,7 @@ public class OrderServiceImpl implements OrderService {
         updated.setTotal(subtotal.subtract(discount).add(tip));
 
         return OrderMapper.toDto(orderRepository.save(updated));
+
     }
 
     @Override
