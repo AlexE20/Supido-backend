@@ -2,19 +2,29 @@ package com.backend.supido.order.service;
 
 import com.backend.supido.common.PageableResponse;
 import com.backend.supido.common.utils.RestaurantUtils;
+import com.backend.supido.coupon.domain.entity.Coupon;
+import com.backend.supido.coupon.repository.CouponRepository;
 import com.backend.supido.exceptions.ResourceNotFoundException;
+import com.backend.supido.menuItem.domain.entity.MenuItem;
+import com.backend.supido.menuItem.repository.MenuItemRepository;
 import com.backend.supido.order.common.mappers.OrderMapper;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
 import com.backend.supido.order.domain.dto.response.OrderResponse;
 import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.order.repository.OrderRepository;
+import com.backend.supido.orderItem.domain.entity.OrderItem;
+import com.backend.supido.orderItem.mapper.OrderItemMapper;
+import com.backend.supido.orderItem.repository.OrderItemRepository;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
 import com.backend.supido.restaurant.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,21 +36,65 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final RestaurantRepository restaurantRepository;
+    private final MenuItemRepository menuItemRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final CouponRepository couponRepository;
 
     @Override
     public OrderResponse create(CreateOrderRequest request) {
         Restaurant restaurant = restaurantRepository.findById(request.restaurantId())
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id: " + request.restaurantId()));
 
-        if (!RestaurantUtils.isOpen(restaurant)) {
-            throw new IllegalArgumentException("Restaurant is currently closed");
-        }
-
-        Order order = OrderMapper.toEntityCreate(request);
-        order.setRestaurant(restaurant);
+        Order order = OrderMapper.toEntityCreate(request, restaurant);
         order.setStatus("PENDING");
         order.setCreatedAt(LocalDateTime.now());
-        return OrderMapper.toDto(orderRepository.save(order));
+        order.setSubtotal(BigDecimal.ZERO);
+        order.setDiscount(BigDecimal.ZERO);
+        order.setShippingCost(BigDecimal.ZERO);
+        order.setTotal(BigDecimal.ZERO);
+        Order saved = orderRepository.save(order);
+
+        // Procesar items
+        List<OrderItem> orderItems = request.items().stream().map(itemRequest -> {
+            MenuItem menuItem = menuItemRepository.findById(itemRequest.menuItemId())
+                    .orElseThrow(() -> new ResourceNotFoundException("MenuItem not found with id: " + itemRequest.menuItemId()));
+            if (!menuItem.getAvailable()) {
+                throw new IllegalArgumentException("MenuItem with id: " + itemRequest.menuItemId() + " is not available");
+            }
+            return OrderItemMapper.toEntityCreate(itemRequest, saved, menuItem);
+        }).collect(Collectors.toList());
+
+        orderItemRepository.saveAll(orderItems);
+
+        // Calcular subtotal
+        BigDecimal subtotal = orderItems.stream()
+                .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        saved.setSubtotal(subtotal);
+
+        // Aplicar cupón si existe
+        if (request.couponId() != null) {
+            Coupon coupon = couponRepository.findById(request.couponId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Coupon not found with id: " + request.couponId()));
+            if (!coupon.getActive()) {
+                throw new IllegalArgumentException("Coupon is not active");
+            }
+            if (coupon.getExpiresAt().isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("Coupon has expired");
+            }
+            BigDecimal discount = subtotal.multiply(coupon.getValue()
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
+            saved.setDiscount(discount);
+        }
+        // Calcular total con lo que tenemos por ahora (sin shippingCost todavia)
+        BigDecimal tip = request.tip() != null ? request.tip() : BigDecimal.ZERO;
+        BigDecimal discount = saved.getDiscount() != null ? saved.getDiscount() : BigDecimal.ZERO;
+        saved.setTip(tip);
+        saved.setTotal(subtotal.subtract(discount).add(tip));
+
+
+        return OrderMapper.toDto(orderRepository.save(saved));
     }
 
     @Override
@@ -60,19 +114,27 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponse update(Long id, UpdateOrderRequest request) {
-        Order order = orderRepository.findById(id)
+        Order existing = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-        Order updatedOrder = OrderMapper.toEntityUpdate(request);
-        updatedOrder.setId(order.getId());
-        updatedOrder.setUserId(order.getUserId());
-        updatedOrder.setRestaurant(order.getRestaurant());
-        updatedOrder.setSubtotal(order.getSubtotal());
-        updatedOrder.setShippingCost(order.getShippingCost());
-        updatedOrder.setDiscount(order.getDiscount());
-        updatedOrder.setTotal(order.getTotal());
-        updatedOrder.setCreatedAt(order.getCreatedAt());
-        Order saved = orderRepository.save(updatedOrder);
-        return OrderMapper.toDto(saved);
+
+        Order updated = OrderMapper.toEntityUpdate(request);
+        updated.setId(existing.getId());
+        updated.setUserId(existing.getUserId());
+        updated.setRestaurant(existing.getRestaurant());
+        updated.setSubtotal(existing.getSubtotal());
+        updated.setShippingCost(existing.getShippingCost());
+        updated.setCreatedAt(existing.getCreatedAt());
+
+        // recalcular total si cambia tip o discount
+        BigDecimal tip = request.tip() != null ? request.tip() : existing.getTip() != null ? existing.getTip() : BigDecimal.ZERO;
+        BigDecimal discount = existing.getDiscount() != null ? existing.getDiscount() : BigDecimal.ZERO;
+        BigDecimal subtotal = existing.getSubtotal() != null ? existing.getSubtotal() : BigDecimal.ZERO;
+
+        updated.setTip(tip);
+        updated.setDiscount(discount);
+        updated.setTotal(subtotal.subtract(discount).add(tip));
+
+        return OrderMapper.toDto(orderRepository.save(updated));
     }
 
     @Override
@@ -146,14 +208,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderResponse> findByRestaurantId(Long restaurantId) {
+    public PageableResponse<OrderResponse> findByRestaurantId(Long restaurantId, int page, int size) {
         if (!restaurantRepository.existsById(restaurantId)) {
             throw new ResourceNotFoundException("Restaurant not found with id: " + restaurantId);
         }
-        return orderRepository.findByRestaurantId(restaurantId)
-                .stream()
-                .map(OrderMapper::toDto)
-                .collect(Collectors.toList());
+        Page<Order> orderPage = orderRepository.findByRestaurantId(restaurantId, PageRequest.of(page, size));
+        return buildPageableResponse(orderPage);
     }
 
     @Override

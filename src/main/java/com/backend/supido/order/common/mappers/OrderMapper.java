@@ -13,13 +13,15 @@ import java.time.LocalDateTime;
 
 public class OrderMapper {
 
-    public static Order toEntityCreate(CreateOrderRequest request) {
+    public static Order toEntityCreate(CreateOrderRequest request, Restaurant restaurant) {
         return Order.builder()
                 .userId(request.userId())
+                .restaurant(restaurant)
                 .couponId(request.couponId())
                 .deliveryAddress(request.deliveryAddress())
                 .tip(request.tip())
                 .build();
+
     }
 
     public static Order toEntityUpdate(UpdateOrderRequest request) {
