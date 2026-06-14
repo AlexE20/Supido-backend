@@ -15,7 +15,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("/coupons")
+@RequestMapping("api/coupons")
 @RequiredArgsConstructor
 public class CouponController {
 

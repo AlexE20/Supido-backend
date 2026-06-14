@@ -31,4 +31,9 @@ public class Coupon {
 
     @Column(name = "active")
     private Boolean active;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.active == null) this.active = true;
+    }
 }
