@@ -39,3 +39,4 @@ public class DeliveryPerson {
     private LocalDateTime lastLocationAt;
 
 }
+
