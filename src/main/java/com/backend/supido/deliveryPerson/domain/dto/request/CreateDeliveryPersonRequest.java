@@ -11,4 +11,6 @@ public record CreateDeliveryPersonRequest(
         Long userId,
 
         Boolean available
-) {}
+) {
+
+}

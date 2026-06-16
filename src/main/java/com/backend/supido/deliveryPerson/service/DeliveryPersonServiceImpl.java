@@ -35,6 +35,13 @@ public class DeliveryPersonServiceImpl implements DeliveryPersonService {
     }
 
     @Override
+    public DeliveryPersonResponse findByUserId(Long userId) {
+        return deliveryPersonRepository.findByUserId(userId)
+                .map(DeliveryPersonMapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException("DeliveryPerson not found for userId: " + userId));
+    }
+
+    @Override
     public List<DeliveryPersonResponse> findAll() {
         return deliveryPersonRepository.findAll()
                 .stream()

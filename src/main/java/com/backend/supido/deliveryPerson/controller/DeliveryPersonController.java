@@ -35,6 +35,11 @@ public class DeliveryPersonController {
         return buildResponse("Delivery persons retrieved successfully", HttpStatus.OK, deliveryPersonService.findAll());
     }
 
+    @GetMapping("/by-user/{userId}")
+    public ResponseEntity<GeneralResponse> findByUserId(@PathVariable Long userId) {
+        return buildResponse("Delivery person retrieved successfully", HttpStatus.OK, deliveryPersonService.findByUserId(userId));
+    }
+
     @GetMapping("/available")
     public ResponseEntity<GeneralResponse> findAvailable() {
         return buildResponse("Available delivery persons retrieved successfully", HttpStatus.OK, deliveryPersonService.findAvailable());

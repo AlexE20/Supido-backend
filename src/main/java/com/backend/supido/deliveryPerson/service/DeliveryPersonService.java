@@ -9,6 +9,7 @@ import java.util.List;
 public interface DeliveryPersonService {
     DeliveryPersonResponse create(CreateDeliveryPersonRequest request);
     DeliveryPersonResponse findById(Long id);
+    DeliveryPersonResponse findByUserId(Long userId);
     List<DeliveryPersonResponse> findAll();
     List<DeliveryPersonResponse> findAvailable();
     DeliveryPersonResponse update(Long id, UpdateDeliveryPersonRequest request);
