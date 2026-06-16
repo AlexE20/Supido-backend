@@ -109,7 +109,7 @@ public class OrderItemServiceImpl implements OrderItemService {
         recalculateSubtotal(order);
 
     }
-
+    //possible util
     private void recalculateSubtotal(Order order) {
         List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
 

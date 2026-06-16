@@ -10,11 +10,11 @@ import java.time.LocalDateTime;
 @Builder
 public record OrderResponse(
         Long id,
-        Long userId,
+        Long userId, //relacionar esto
         RestaurantSummaryDTO restaurant,
         Long deliveryPersonId,
         Long cuponId,
-        String status,
+        String status, //cambiar a enum
         String deliveryAddress,
         BigDecimal subtotal,
         BigDecimal shippingCost,
@@ -23,5 +23,6 @@ public record OrderResponse(
         BigDecimal total,
         LocalDateTime createdAt,
         LocalDateTime deliveredAt
+        //mostar lista de items
 ) {
 }
