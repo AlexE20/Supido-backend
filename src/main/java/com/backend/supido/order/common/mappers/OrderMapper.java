@@ -5,11 +5,15 @@ import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
 import com.backend.supido.order.domain.dto.response.OrderResponse;
 import com.backend.supido.order.domain.entity.Order;
+import com.backend.supido.orderItem.domain.dto.response.OrderItemResponse;
+import com.backend.supido.orderItem.mapper.OrderItemMapper;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class OrderMapper {
 
@@ -40,6 +44,13 @@ public class OrderMapper {
                 .id(r.getId())
                 .name(r.getName())
                 .build();
+
+        List<OrderItemResponse> items = order.getItems() != null
+                ? order.getItems().stream()
+                .map(OrderItemMapper::toDto)
+                .collect(Collectors.toList())
+                : List.of();
+
         return new OrderResponse(
                 order.getId(),
                 order.getUserId(),
@@ -54,7 +65,8 @@ public class OrderMapper {
                 order.getTip(),
                 order.getTotal(),
                 order.getCreatedAt(),
-                order.getDeliveredAt()
+                order.getDeliveredAt(),
+                items
         );
     }
 }
