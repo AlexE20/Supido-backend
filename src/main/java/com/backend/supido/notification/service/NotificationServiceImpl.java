@@ -3,6 +3,7 @@ package com.backend.supido.notification.service;
 import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.notification.domain.dto.response.NotificationResponse;
 import com.backend.supido.notification.domain.entities.Notification;
+import com.backend.supido.notification.domain.enums.NotificationType;
 import com.backend.supido.notification.mapper.NotificationMapper;
 import com.backend.supido.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
 
     @Override
-    public void sendOrderNotification(Long userId, Long orderId, String type, String message) {
+    public void sendOrderNotification(Long userId, Long orderId, NotificationType type, String message) {
         Notification notification = NotificationMapper.toEntity(userId, orderId, type, message);
         notificationRepository.save(notification);
     }
@@ -48,5 +49,16 @@ public class NotificationServiceImpl implements NotificationService {
         List<Notification> unreadNotifications = notificationRepository.findByUserIdAndReadFalse(userId);
         unreadNotifications.forEach(noti -> noti.setRead(true));
         notificationRepository.saveAll(unreadNotifications);
+    }
+
+    @Override
+    public void notifyDeliveryNearby(Long orderId) {
+
+    }
+
+    @Override
+    public void notifyNewOrderToDeliveryPersons(List<Long> repartidorUserIds, Long orderId) {
+        repartidorUserIds.forEach(repartidorUserId -> sendOrderNotification(repartidorUserId, orderId, NotificationType.NEW_ORDER_AVAILABLE,
+                "Hay un pedido disponible cerca de ti"));
     }
 }

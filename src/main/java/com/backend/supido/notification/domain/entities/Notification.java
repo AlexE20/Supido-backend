@@ -1,5 +1,6 @@
 package com.backend.supido.notification.domain.entities;
 
+import com.backend.supido.notification.domain.enums.NotificationType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,8 +27,9 @@ public class Notification {
     @Column(name = "order_id")
     private Long orderId;
 
-    @Column(name = "type", nullable = false)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type")
+    private NotificationType type;
 
     @Column(name = "message", nullable = false)
     private String message;
