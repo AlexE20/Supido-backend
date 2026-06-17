@@ -2,12 +2,14 @@ package com.backend.supido.restaurant.domain.entity;
 
 
 import com.backend.supido.menuItem.domain.entity.MenuItem;
+import com.backend.supido.restaurant.common.enums.Category;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalTime;
 import java.util.List;
 
 @Entity
@@ -24,23 +26,24 @@ public class Restaurant {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "category")
-    private String category;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private Category category;
 
     @Column(name = "address", nullable = false)
     private String address;
 
-    @Column(name = "latitude")
+    @Column(name = "latitude", nullable = false)
     private Double latitude;
 
-    @Column(name = "longitude")
+    @Column(name = "longitude", nullable = false)
     private Double longitude;
 
-    @Column(name = "opening_time")
-    private String openingTime;
+    @Column(name = "opening_time", nullable = false)
+    private LocalTime openingTime;
 
-    @Column(name = "closing_time")
-    private String closingTime;
+    @Column(name = "closing_time", nullable = false)
+    private LocalTime closingTime;
 
     @Column(name = "photo_url")
     private String photoUrl;

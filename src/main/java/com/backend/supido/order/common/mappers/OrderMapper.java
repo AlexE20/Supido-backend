@@ -1,24 +1,31 @@
 package com.backend.supido.order.common.mappers;
 
+import com.backend.supido.order.domain.dto.RestaurantSummaryDTO;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
 import com.backend.supido.order.domain.dto.response.OrderResponse;
 import com.backend.supido.order.domain.entity.Order;
+import com.backend.supido.orderItem.domain.dto.response.OrderItemResponse;
+import com.backend.supido.orderItem.mapper.OrderItemMapper;
+import com.backend.supido.restaurant.domain.entity.Restaurant;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class OrderMapper {
 
-    public static Order toEntityCreate(CreateOrderRequest request) {
+    public static Order toEntityCreate(CreateOrderRequest request, Restaurant restaurant) {
         return Order.builder()
                 .userId(request.userId())
-                .restaurantId(request.restaurantId())
+                .restaurant(restaurant)
                 .couponId(request.couponId())
                 .deliveryAddress(request.deliveryAddress())
                 .tip(request.tip())
                 .build();
+
     }
 
     public static Order toEntityUpdate(UpdateOrderRequest request) {
@@ -32,10 +39,22 @@ public class OrderMapper {
     }
 
     public static OrderResponse toDto(Order order) {
+        Restaurant r = order.getRestaurant();
+        RestaurantSummaryDTO restaurantSummary = RestaurantSummaryDTO.builder()
+                .id(r.getId())
+                .name(r.getName())
+                .build();
+
+        List<OrderItemResponse> items = order.getItems() != null
+                ? order.getItems().stream()
+                .map(OrderItemMapper::toDto)
+                .collect(Collectors.toList())
+                : List.of();
+
         return new OrderResponse(
                 order.getId(),
                 order.getUserId(),
-                order.getRestaurantId(),
+                restaurantSummary,
                 order.getDeliveryPersonId(),
                 order.getCouponId(),
                 order.getStatus(),
@@ -46,7 +65,8 @@ public class OrderMapper {
                 order.getTip(),
                 order.getTotal(),
                 order.getCreatedAt(),
-                order.getDeliveredAt()
+                order.getDeliveredAt(),
+                items
         );
     }
 }

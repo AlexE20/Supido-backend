@@ -4,7 +4,6 @@ import com.backend.supido.common.GeneralResponse;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
 import com.backend.supido.order.service.OrderService;
-import com.backend.supido.order.service.OrderServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +18,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class OrderController {
 
-    private final OrderServiceImpl orderService;
+    private final OrderService orderService;
 
     @PostMapping
     public ResponseEntity<GeneralResponse> create(@Valid @RequestBody CreateOrderRequest request) {
@@ -41,7 +40,7 @@ public class OrderController {
         return buildResponse("Order updated successfully", HttpStatus.OK, orderService.update(id, request));
     }
 
-    @DeleteMapping("/{id}")
+    @PatchMapping("/{id}/cancel")
     public ResponseEntity<GeneralResponse> cancel(@PathVariable Long id) {
         orderService.cancel(id);
         return buildResponse("Order cancelled successfully", HttpStatus.OK, null);
@@ -74,18 +73,27 @@ public class OrderController {
 
     // Consultas por relación
     @GetMapping("/user/{userId}")
-    public ResponseEntity<GeneralResponse> findByUserId(@PathVariable Long userId) {
-        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByUserId(userId));
+    public ResponseEntity<GeneralResponse> findByUserId(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByUserId(userId, page, size));
     }
 
     @GetMapping("/restaurant/{restaurantId}")
-    public ResponseEntity<GeneralResponse> findByRestaurantId(@PathVariable Long restaurantId) {
-        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByRestaurantId(restaurantId));
+    public ResponseEntity<GeneralResponse> findByRestaurantId(
+            @PathVariable Long restaurantId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByRestaurantId(restaurantId, page, size));
     }
 
     @GetMapping("/delivery-person/{deliveryPersonId}")
-    public ResponseEntity<GeneralResponse> findByDeliveryPersonId(@PathVariable Long deliveryPersonId) {
-        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByDeliveryPersonId(deliveryPersonId));
+    public ResponseEntity<GeneralResponse> findByDeliveryPersonId(
+            @PathVariable Long deliveryPersonId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByDeliveryPersonId(deliveryPersonId, page, size));
     }
 
     public ResponseEntity<GeneralResponse> buildResponse(String message, HttpStatus status, Object data){

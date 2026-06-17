@@ -1,5 +1,8 @@
 package com.backend.supido.order.domain.entity;
 
+import com.backend.supido.order.common.enums.Status;
+import com.backend.supido.orderItem.domain.entity.OrderItem;
+import com.backend.supido.restaurant.domain.entity.Restaurant;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -17,14 +21,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Order {
     @Id
-    @GeneratedValue()
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "userId")
     private long userId;
 
-    @Column(name = "restaurantId")
-    private long restaurantId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "restaurant_id")
+    private Restaurant restaurant;
 
     @Column(name = "deliveryPersonId")
     private Long deliveryPersonId;
@@ -32,8 +37,9 @@ public class Order {
     @Column(name = "CouponId")
     private Long couponId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private Status status;
 
     @Column(name = "deliveryAddress")
     private String deliveryAddress;
@@ -58,4 +64,7 @@ public class Order {
 
     @Column(name = "deliveredAt")
     private LocalDateTime deliveredAt;
+
+    @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
+    private List<OrderItem> items;
 }

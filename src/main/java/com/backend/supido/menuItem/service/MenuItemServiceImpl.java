@@ -15,7 +15,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +27,10 @@ public class MenuItemServiceImpl implements MenuItemService {
     public MenuItemDTOResponse createMenuItem(Long restaurantId, MenuItemDTORequest request) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id " + restaurantId));
+
+        if (menuItemRepository.existsByNameAndRestaurantId(request.name(), restaurantId)) {
+            throw new IllegalArgumentException("Menu item with name '" + request.name() + "' already exists in this restaurant");
+        }
 
         MenuItem menuItem = MenuItemMapper.toEntity(request);
         menuItem.setRestaurant(restaurant);
@@ -71,10 +74,14 @@ public class MenuItemServiceImpl implements MenuItemService {
     @Override
     public MenuItemDTOResponse updateMenuItem(Long restaurantId, Long id, MenuItemDTORequest request) {
         MenuItem menuItem = findMenuItemBelongingToRestaurant(restaurantId, id);
+
+        if (menuItemRepository.existsByNameAndRestaurantIdAndIdNot(request.name(), restaurantId, id)) {
+            throw new IllegalArgumentException("Menu item with name '" + request.name() + "' already exists in this restaurant");
+        }
+
         menuItem.setName(request.name());
         menuItem.setDescription(request.description());
         menuItem.setPrice(request.price());
-        menuItem.setCategory(request.category());
         menuItem.setPhotoUrl(request.photoUrl());
         return MenuItemMapper.toResponse(menuItemRepository.save(menuItem));
     }
