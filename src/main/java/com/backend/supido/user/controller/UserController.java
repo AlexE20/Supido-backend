@@ -1,8 +1,8 @@
-package com.backend.supido.auth.controllers;
+package com.backend.supido.user.controller;
 
-import com.backend.supido.auth.domain.dto.request.auth.RegisterRequest;
+import com.backend.supido.auth.domain.dto.request.RegisterRequest;
 import com.backend.supido.common.GeneralResponse;
-import com.backend.supido.auth.services.impl.UserServiceImpl;
+import com.backend.supido.user.service.UserServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

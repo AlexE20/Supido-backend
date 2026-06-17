@@ -1,6 +1,6 @@
-package com.backend.supido.auth.security;
+package com.backend.supido.security;
 
-import com.backend.supido.auth.services.impl.UserServiceImpl;
+import com.backend.supido.user.service.UserServiceImpl;
 import com.backend.supido.common.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

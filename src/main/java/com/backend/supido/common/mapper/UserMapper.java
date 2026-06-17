@@ -1,8 +1,8 @@
 package com.backend.supido.common.mapper;
 
-import com.backend.supido.auth.domain.dto.request.auth.RegisterRequest;
-import com.backend.supido.auth.domain.dto.response.UserResponse;
-import com.backend.supido.auth.domain.entities.User;
+import com.backend.supido.auth.domain.dto.request.RegisterRequest;
+import com.backend.supido.user.domain.dto.response.UserResponse;
+import com.backend.supido.user.domain.entity.User;
 import org.springframework.stereotype.Component;
 
 @Component

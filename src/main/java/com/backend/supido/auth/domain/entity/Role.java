@@ -1,4 +1,4 @@
-package com.backend.supido.auth.domain.entities;
+package com.backend.supido.auth.domain.entity;
 
 
 import jakarta.persistence.*;

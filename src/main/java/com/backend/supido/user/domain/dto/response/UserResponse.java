@@ -1,4 +1,4 @@
-package com.backend.supido.auth.domain.dto.response;
+package com.backend.supido.user.domain.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

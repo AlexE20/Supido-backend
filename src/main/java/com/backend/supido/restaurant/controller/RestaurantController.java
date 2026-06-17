@@ -1,8 +1,7 @@
 package com.backend.supido.restaurant.controller;
 
-import com.backend.supido.auth.domain.entities.User;
+import com.backend.supido.user.domain.entity.User;
 import com.backend.supido.common.GeneralResponse;
-import com.backend.supido.restaurant.common.enums.Category;
 import com.backend.supido.restaurant.domain.dto.request.RestaurantDTORequest;
 import com.backend.supido.restaurant.service.RestaurantService;
 import jakarta.validation.Valid;

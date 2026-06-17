@@ -1,12 +1,12 @@
-package com.backend.supido.auth.services.impl;
+package com.backend.supido.user.service;
 
-import com.backend.supido.auth.domain.entities.Role;
-import com.backend.supido.auth.repositories.RoleRepository;
+import com.backend.supido.auth.domain.entity.Role;
+import com.backend.supido.auth.repository.RoleRepository;
 import com.backend.supido.common.mapper.UserMapper;
-import com.backend.supido.auth.domain.dto.request.auth.RegisterRequest;
-import com.backend.supido.auth.domain.dto.response.UserResponse;
-import com.backend.supido.auth.domain.entities.User;
-import com.backend.supido.auth.repositories.UserRepository;
+import com.backend.supido.auth.domain.dto.request.RegisterRequest;
+import com.backend.supido.user.domain.dto.response.UserResponse;
+import com.backend.supido.user.domain.entity.User;
+import com.backend.supido.user.repository.UserRepository;
 import com.backend.supido.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

@@ -1,5 +1,6 @@
-package com.backend.supido.auth.domain.entities;
+package com.backend.supido.user.domain.entity;
 
+import com.backend.supido.auth.domain.entity.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

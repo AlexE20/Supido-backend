@@ -1,4 +1,4 @@
-package com.backend.supido.auth.domain.dto.request.auth;
+package com.backend.supido.auth.domain.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

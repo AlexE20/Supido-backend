@@ -1,6 +1,6 @@
 package com.backend.supido.restaurant.common.mapper;
 
-import com.backend.supido.auth.domain.entities.User;
+import com.backend.supido.user.domain.entity.User;
 import com.backend.supido.restaurant.domain.dto.request.RestaurantDTORequest;
 import com.backend.supido.restaurant.domain.dto.response.RestaurantDTOResponse;
 import com.backend.supido.restaurant.domain.entity.Restaurant;

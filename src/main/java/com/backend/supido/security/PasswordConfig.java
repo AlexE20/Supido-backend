@@ -1,4 +1,4 @@
-package com.backend.supido.auth.security;
+package com.backend.supido.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
