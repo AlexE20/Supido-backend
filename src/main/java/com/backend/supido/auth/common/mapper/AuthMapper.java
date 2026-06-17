@@ -1,4 +1,4 @@
-package com.backend.supido.common.mapper;
+package com.backend.supido.auth.common.mapper;
 
 import com.backend.supido.auth.domain.dto.request.RegisterRequest;
 import com.backend.supido.user.domain.dto.response.UserResponse;
