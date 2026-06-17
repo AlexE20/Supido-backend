@@ -16,6 +16,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -41,7 +43,7 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
-        String token = jwtUtil.generateToken(user);
+        String token = jwtUtil.generateToken(Map.of("role", user.getRole().getName()), user);
         return new AuthResponse(token);
     }
 
@@ -56,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
-        String token = jwtUtil.generateToken(user);
+        String token = jwtUtil.generateToken(Map.of("role", user.getRole().getName()), user);
         return new AuthResponse(token);
     }
 }

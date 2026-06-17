@@ -4,9 +4,12 @@ import com.backend.supido.common.PageableResponse;
 import com.backend.supido.common.utils.RestaurantUtils;
 import com.backend.supido.coupon.domain.entity.Coupon;
 import com.backend.supido.coupon.repository.CouponRepository;
+import com.backend.supido.deliveryPerson.service.DeliveryPersonService;
 import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.menuItem.domain.entity.MenuItem;
 import com.backend.supido.menuItem.repository.MenuItemRepository;
+import com.backend.supido.notification.domain.enums.NotificationType;
+import com.backend.supido.notification.service.NotificationService;
 import com.backend.supido.order.common.enums.Status;
 import com.backend.supido.order.common.mappers.OrderMapper;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
@@ -40,6 +43,8 @@ public class OrderServiceImpl implements OrderService {
     private final MenuItemRepository menuItemRepository;
     private final OrderItemRepository orderItemRepository;
     private final CouponRepository couponRepository;
+    private final NotificationService notificationService;
+    private final DeliveryPersonService deliveryPersonService;
 
     @Override
     public OrderResponse create(CreateOrderRequest request) {
@@ -89,8 +94,13 @@ public class OrderServiceImpl implements OrderService {
         saved.setTip(tip);
         saved.setTotal(subtotal.subtract(discount).add(tip));
 
+        // crear notificacion
+        Order finalOrder = orderRepository.save(saved);
 
-        return OrderMapper.toDto(orderRepository.save(saved));
+        notificationService.sendOrderNotification(finalOrder.getUserId(), finalOrder.getId(), NotificationType.ORDER_RECEIVED,
+                "Tu pedido fue recibido. El restaurante lo esta procesando.");
+
+        return OrderMapper.toDto(finalOrder);
     }
 
     @Override
@@ -151,7 +161,12 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Order can only be cancelled when in PENDING status");
         }
         order.setStatus(Status.CANCELLED);
-        orderRepository.save(order);
+
+        // crear notificacion
+        Order saved = orderRepository.save(order);
+
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+                NotificationType.ORDER_CANCELLED, "Tu pedido fue cancelado sin cargo.");
     }
 
     @Override
@@ -162,7 +177,18 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Order must be in PENDING status to confirm");
         }
         order.setStatus(Status.CONFIRMED);
-        return OrderMapper.toDto(orderRepository.save(order));
+
+        // crear notificacion
+        Order saved = orderRepository.save(order);
+
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(), NotificationType.ORDER_CONFIRMED,
+                "El restaurante acepto tu pedido y pronto empezara a prepararlo");
+
+        List<Long> nearbyDeliveryPersons = deliveryPersonService.findNearbyAvailableUserIds(
+                saved.getRestaurant().getLatitude(), saved.getRestaurant().getLongitude(), 3.0);
+        notificationService.notifyNewOrderToDeliveryPersons(nearbyDeliveryPersons, saved.getId());
+
+        return OrderMapper.toDto(saved);
     }
 
     @Override
@@ -173,7 +199,14 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Order must be in CONFIRMED status to prepare");
         }
         order.setStatus(Status.PREPARING);
-        return OrderMapper.toDto(orderRepository.save(order));
+
+        // crear notificacion
+        Order saved = orderRepository.save(order);
+
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+                NotificationType.ORDER_PREPARING, "Tu pedido está siendo preparado. Tiempo estimado: 20-30 min.");
+
+        return OrderMapper.toDto(saved);
     }
 
     @Override
@@ -184,7 +217,14 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Order must be in PREPARING status to go on the way");
         }
         order.setStatus(Status.ON_THE_WAY);
-        return OrderMapper.toDto(orderRepository.save(order));
+
+        // crear notificacion
+        Order saved = orderRepository.save(order);
+
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(), NotificationType.ORDER_ON_THE_WAY,
+                "Tu pedido fue recogido por nuestro repartidor y esta en camino a tu direccion.");
+
+        return OrderMapper.toDto(saved);
     }
 
     @Override
@@ -196,7 +236,15 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setStatus(Status.DELIVERED);
         order.setDeliveredAt(LocalDateTime.now());
-        return OrderMapper.toDto(orderRepository.save(order));
+        Order saved = orderRepository.save(order);
+
+        // crear notificacion
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+                NotificationType.ORDER_DELIVERED, "¡Tu pedido fue entregado! Esperamos que lo disfrutes.");
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+                NotificationType.RATE_YOUR_ORDER, "Califica tu experiencia: restaurante y repartidor.");
+
+        return OrderMapper.toDto(saved);
     }
 
     @Override
@@ -204,7 +252,14 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
         order.setDeliveryPersonId(deliveryPersonId);
-        return OrderMapper.toDto(orderRepository.save(order));
+
+        // crear notificacion
+        Order saved = orderRepository.save(order);
+
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+                NotificationType.DELIVERY_ASSIGNED, "Se asignó un repartidor a tu pedido. Pronto saldrá a buscarlo.");
+
+        return OrderMapper.toDto(saved);
     }
 
     @Override
