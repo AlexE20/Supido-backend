@@ -37,6 +37,7 @@ public class Order {
     @Column(name = "CouponId")
     private Long couponId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private Status status;
 
