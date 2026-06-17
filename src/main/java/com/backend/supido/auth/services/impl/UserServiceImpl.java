@@ -3,7 +3,7 @@ package com.backend.supido.auth.services.impl;
 import com.backend.supido.auth.domain.entities.Role;
 import com.backend.supido.auth.repositories.RoleRepository;
 import com.backend.supido.common.mapper.UserMapper;
-import com.backend.supido.auth.domain.dto.request.auth.UserRequest;
+import com.backend.supido.auth.domain.dto.request.auth.RegisterRequest;
 import com.backend.supido.auth.domain.dto.response.UserResponse;
 import com.backend.supido.auth.domain.entities.User;
 import com.backend.supido.auth.repositories.UserRepository;
@@ -37,39 +37,39 @@ public class UserServiceImpl implements UserDetailsService {
         return userMapper.toUserDto(user);
     }
 
-    public UserResponse createUser(UserRequest userRequest){
-        userRepository.findByUsername(userRequest.getUsername()).ifPresent(existingUser -> {
+    public UserResponse createUser(RegisterRequest registerRequest){
+        userRepository.findByUsername(registerRequest.getUsername()).ifPresent(existingUser -> {
             throw new IllegalArgumentException("El username ya está en uso");
         });
-        Role role=roleRepository.findByName(userRequest.getRole())
+        Role role=roleRepository.findByName(registerRequest.getRole())
                 .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado"));
-        User user= userMapper.toUser(userRequest);
-        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        User user= userMapper.toUser(registerRequest);
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setRole(role);
         User savedUser = userRepository.save(user);
         return userMapper.toUserDto(savedUser);
     }
 
 
-    public UserResponse updateUser(Long id, UserRequest userRequest) {
+    public UserResponse updateUser(Long id, RegisterRequest registerRequest) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
-        userRepository.findByUsername(userRequest.getUsername())
+        userRepository.findByUsername(registerRequest.getUsername())
                 .ifPresent(existingUser -> {
                     if (!existingUser.getId().equals(id)) {
                         throw new IllegalArgumentException("El username ya está en uso");
                     }
                 });
 
-        Role role = roleRepository.findByName(userRequest.getRole())
+        Role role = roleRepository.findByName(registerRequest.getRole())
                 .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado"));
 
-        user.setUsername(userRequest.getUsername());
-        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        user.setUsername(registerRequest.getUsername());
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setRole(role);
-        user.setEmail(userRequest.getEmail());
-        user.setPhone(userRequest.getPhone());
+        user.setEmail(registerRequest.getEmail());
+        user.setPhone(registerRequest.getPhone());
 
         User savedUser = userRepository.save(user);
         return userMapper.toUserDto(savedUser);

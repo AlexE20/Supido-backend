@@ -2,8 +2,8 @@ package com.backend.supido.auth.services.impl;
 
 import com.backend.supido.auth.services.AuthService;
 import com.backend.supido.common.mapper.UserMapper;
-import com.backend.supido.auth.domain.dto.request.auth.UserLoginRequest;
-import com.backend.supido.auth.domain.dto.request.auth.UserRequest;
+import com.backend.supido.auth.domain.dto.request.auth.LoginRequest;
+import com.backend.supido.auth.domain.dto.request.auth.RegisterRequest;
 import com.backend.supido.auth.domain.dto.response.AuthResponse;
 import com.backend.supido.auth.domain.entities.Role;
 import com.backend.supido.auth.domain.entities.User;
@@ -28,7 +28,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
 
-    public AuthResponse register(UserRequest request) {
+    public AuthResponse register(RegisterRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new IllegalArgumentException("El username ya está en uso");
         }
@@ -46,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
         return new AuthResponse(token);
     }
 
-    public AuthResponse login(UserLoginRequest request) {
+    public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),

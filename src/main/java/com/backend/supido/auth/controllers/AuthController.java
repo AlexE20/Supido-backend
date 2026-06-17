@@ -1,9 +1,8 @@
 package com.backend.supido.auth.controllers;
 
-import com.backend.supido.auth.domain.dto.request.auth.UserLoginRequest;
-import com.backend.supido.auth.domain.dto.request.auth.UserRequest;
+import com.backend.supido.auth.domain.dto.request.auth.LoginRequest;
+import com.backend.supido.auth.domain.dto.request.auth.RegisterRequest;
 import com.backend.supido.auth.domain.dto.response.AuthResponse;
-import com.backend.supido.auth.services.AuthService;
 import com.backend.supido.auth.services.impl.AuthServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +19,12 @@ public class AuthController {
     private final AuthServiceImpl authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody UserRequest userRequest) {
-        return ResponseEntity.ok(authService.register(userRequest));
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
+        return ResponseEntity.ok(authService.register(registerRequest));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody UserLoginRequest userLoginRequest) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest userLoginRequest) {
         return ResponseEntity.ok(authService.login(userLoginRequest));
     }
 }

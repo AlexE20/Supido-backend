@@ -1,6 +1,6 @@
 package com.backend.supido.auth.controllers;
 
-import com.backend.supido.auth.domain.dto.request.auth.UserRequest;
+import com.backend.supido.auth.domain.dto.request.auth.RegisterRequest;
 import com.backend.supido.common.GeneralResponse;
 import com.backend.supido.auth.services.impl.UserServiceImpl;
 import jakarta.validation.Valid;
@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("api/users")
@@ -28,14 +27,14 @@ public class UserController {
 
     @PostMapping
     @PreAuthorize("hasRole('SUPER')")
-    public ResponseEntity<GeneralResponse> createUser(@Valid @RequestBody UserRequest userRequest) {
-        return buildResponse("User created successfully", HttpStatus.CREATED, userService.createUser(userRequest));
+    public ResponseEntity<GeneralResponse> createUser(@Valid @RequestBody RegisterRequest registerRequest) {
+        return buildResponse("User created successfully", HttpStatus.CREATED, userService.createUser(registerRequest));
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('SUPER')")
-    public ResponseEntity<GeneralResponse> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequest userRequest) {
-        return buildResponse("User updated successfully", HttpStatus.OK, userService.updateUser(id, userRequest));
+    public ResponseEntity<GeneralResponse> updateUser(@PathVariable Long id, @Valid @RequestBody RegisterRequest registerRequest) {
+        return buildResponse("User updated successfully", HttpStatus.OK, userService.updateUser(id, registerRequest));
     }
 
     @DeleteMapping("/{id}")
