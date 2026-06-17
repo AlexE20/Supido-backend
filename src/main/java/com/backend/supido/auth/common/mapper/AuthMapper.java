@@ -6,7 +6,7 @@ import com.backend.supido.user.domain.entity.User;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserMapper {
+public class AuthMapper {
 public User toUser(RegisterRequest user){
     return User.builder()
             .username(user.getUsername())

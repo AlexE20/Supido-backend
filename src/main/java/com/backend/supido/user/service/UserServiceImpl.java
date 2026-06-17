@@ -2,8 +2,10 @@ package com.backend.supido.user.service;
 
 import com.backend.supido.auth.domain.entity.Role;
 import com.backend.supido.auth.repository.RoleRepository;
-import com.backend.supido.common.mapper.UserMapper;
+import com.backend.supido.auth.common.mapper.AuthMapper;
 import com.backend.supido.auth.domain.dto.request.RegisterRequest;
+import com.backend.supido.user.common.mapper.UserMapper;
+import com.backend.supido.user.domain.dto.request.UserRequest;
 import com.backend.supido.user.domain.dto.response.UserResponse;
 import com.backend.supido.user.domain.entity.User;
 import com.backend.supido.user.repository.UserRepository;
@@ -27,49 +29,49 @@ public class UserServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
     }
 
     public UserResponse getUserById(Long id){
        User user= userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));;
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));;
         return userMapper.toUserDto(user);
     }
 
-    public UserResponse createUser(RegisterRequest registerRequest){
-        userRepository.findByUsername(registerRequest.getUsername()).ifPresent(existingUser -> {
-            throw new IllegalArgumentException("El username ya está en uso");
+    public UserResponse createUser(UserRequest userRequest){
+        userRepository.findByUsername(userRequest.getUsername()).ifPresent(existingUser -> {
+            throw new IllegalArgumentException("Username already exists: " + userRequest.getUsername());
         });
-        Role role=roleRepository.findByName(registerRequest.getRole())
-                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado"));
-        User user= userMapper.toUser(registerRequest);
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        Role role=roleRepository.findByName(userRequest.getRole())
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + userRequest.getRole()));
+        User user= userMapper.toUser(userRequest);
+        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         user.setRole(role);
         User savedUser = userRepository.save(user);
         return userMapper.toUserDto(savedUser);
     }
 
 
-    public UserResponse updateUser(Long id, RegisterRequest registerRequest) {
+    public UserResponse updateUser(Long id, UserRequest userRequest) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
-        userRepository.findByUsername(registerRequest.getUsername())
+        userRepository.findByUsername(userRequest.getUsername())
                 .ifPresent(existingUser -> {
                     if (!existingUser.getId().equals(id)) {
                         throw new IllegalArgumentException("El username ya está en uso");
                     }
                 });
 
-        Role role = roleRepository.findByName(registerRequest.getRole())
+        Role role = roleRepository.findByName(userRequest.getRole())
                 .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado"));
 
-        user.setUsername(registerRequest.getUsername());
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        user.setUsername(userRequest.getUsername());
+        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         user.setRole(role);
-        user.setEmail(registerRequest.getEmail());
-        user.setPhone(registerRequest.getPhone());
+        user.setEmail(userRequest.getEmail());
+        user.setPhone(userRequest.getPhone());
 
         User savedUser = userRepository.save(user);
         return userMapper.toUserDto(savedUser);

@@ -1,4 +1,4 @@
-package com.backend.supido.service;
+package com.backend.supido.auth.service;
 
 public interface AuthService {
 }

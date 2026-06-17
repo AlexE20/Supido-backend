@@ -19,9 +19,6 @@ public class RegisterRequest {
     @Email(message = "El correo electrónico no es válido.")
     private String email;
 
-    @NotBlank(message = "El rol es obligatorio")
-    private String role;
-
     @NotBlank(message = "El telefono celular es obligatorio.")
     private String phone;
 

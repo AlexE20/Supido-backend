@@ -2,6 +2,7 @@ package com.backend.supido.user.controller;
 
 import com.backend.supido.auth.domain.dto.request.RegisterRequest;
 import com.backend.supido.common.GeneralResponse;
+import com.backend.supido.user.domain.dto.request.UserRequest;
 import com.backend.supido.user.service.UserServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,14 +28,14 @@ public class UserController {
 
     @PostMapping
     @PreAuthorize("hasRole('SUPER')")
-    public ResponseEntity<GeneralResponse> createUser(@Valid @RequestBody RegisterRequest registerRequest) {
-        return buildResponse("User created successfully", HttpStatus.CREATED, userService.createUser(registerRequest));
+    public ResponseEntity<GeneralResponse> createUser(@Valid @RequestBody UserRequest userRequest) {
+        return buildResponse("User created successfully", HttpStatus.CREATED, userService.createUser(userRequest));
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('SUPER')")
-    public ResponseEntity<GeneralResponse> updateUser(@PathVariable Long id, @Valid @RequestBody RegisterRequest registerRequest) {
-        return buildResponse("User updated successfully", HttpStatus.OK, userService.updateUser(id, registerRequest));
+    public ResponseEntity<GeneralResponse> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequest userRequest) {
+        return buildResponse("User updated successfully", HttpStatus.OK, userService.updateUser(id, userRequest));
     }
 
     @DeleteMapping("/{id}")

@@ -1,6 +1,6 @@
-package com.backend.supido.service;
+package com.backend.supido.auth.service;
 
-import com.backend.supido.common.mapper.UserMapper;
+import com.backend.supido.auth.common.mapper.AuthMapper;
 import com.backend.supido.auth.domain.dto.request.LoginRequest;
 import com.backend.supido.auth.domain.dto.request.RegisterRequest;
 import com.backend.supido.auth.domain.dto.response.AuthResponse;
@@ -22,7 +22,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final UserMapper userMapper;
+    private final AuthMapper authMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
         Role role = roleRepository.findByName("ROLE_USER")
                 .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado"));
 
-        User user = userMapper.toUser(request);
+        User user = authMapper.toUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(role);
 
