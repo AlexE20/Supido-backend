@@ -7,6 +7,7 @@ import com.backend.supido.coupon.repository.CouponRepository;
 import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.menuItem.domain.entity.MenuItem;
 import com.backend.supido.menuItem.repository.MenuItemRepository;
+import com.backend.supido.order.common.enums.Status;
 import com.backend.supido.order.common.mappers.OrderMapper;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
@@ -45,8 +46,12 @@ public class OrderServiceImpl implements OrderService {
         Restaurant restaurant = restaurantRepository.findById(request.restaurantId())
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id: " + request.restaurantId()));
 
+        if (!RestaurantUtils.isOpen(restaurant)) {
+            throw new IllegalArgumentException("Restaurant is currently closed");
+        }
+
         Order order = OrderMapper.toEntityCreate(request, restaurant);
-        order.setStatus("PENDING");
+        order.setStatus(Status.PENDING);
         order.setCreatedAt(LocalDateTime.now());
         order.setSubtotal(BigDecimal.ZERO);
         order.setDiscount(BigDecimal.ZERO);
@@ -75,20 +80,8 @@ public class OrderServiceImpl implements OrderService {
 
         // Aplicar cupón si existe
         if (request.couponId() != null) {
-            Coupon coupon = couponRepository.findById(request.couponId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Coupon not found with id: " + request.couponId()));
-            if (!coupon.getActive()) {
-                throw new IllegalArgumentException("Coupon is not active");
-            }
-            if (coupon.getExpiresAt().isBefore(LocalDateTime.now())) {
-                throw new IllegalArgumentException("Coupon has expired");
-            }
-            BigDecimal discount = subtotal.multiply(coupon.getValue()
-                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
+            BigDecimal discount = applyCoupon(request.couponId(), subtotal);
             saved.setDiscount(discount);
-
-            coupon.setActive(false);
-            couponRepository.save(coupon);
         }
         // Calcular total con lo que tenemos por ahora (sin shippingCost todavia)
         BigDecimal tip = request.tip() != null ? request.tip() : BigDecimal.ZERO;
@@ -132,21 +125,9 @@ public class OrderServiceImpl implements OrderService {
             if (existing.getCouponId() != null) {
                 throw new IllegalArgumentException("Order already has a coupon applied");
             }
-            Coupon coupon = couponRepository.findById(request.couponId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Coupon not found with id: " + request.couponId()));
-            if (!coupon.getActive()) {
-                throw new IllegalArgumentException("Coupon is not active");
-            }
-            if (coupon.getExpiresAt().isBefore(LocalDateTime.now())) {
-                throw new IllegalArgumentException("Coupon has expired");
-            }
-            BigDecimal discount = existing.getSubtotal().multiply(coupon.getValue()
-                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
+            BigDecimal discount = applyCoupon(request.couponId(), existing.getSubtotal());
             updated.setDiscount(discount);
             updated.setCouponId(request.couponId());
-
-            coupon.setActive(false);
-            couponRepository.save(coupon);
         }
 
         // recalcular total con discount ya actualizado
@@ -166,10 +147,10 @@ public class OrderServiceImpl implements OrderService {
     public void cancel(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-        if (!order.getStatus().equals("PENDING")) {
+        if (!order.getStatus().equals(Status.PENDING)) {
             throw new IllegalArgumentException("Order can only be cancelled when in PENDING status");
         }
-        order.setStatus("CANCELLED");
+        order.setStatus(Status.CANCELLED);
         orderRepository.save(order);
     }
 
@@ -177,10 +158,10 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse confirm(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-        if (!order.getStatus().equals("PENDING")) {
+        if (!order.getStatus().equals(Status.PENDING)) {
             throw new IllegalArgumentException("Order must be in PENDING status to confirm");
         }
-        order.setStatus("CONFIRMED");
+        order.setStatus(Status.CONFIRMED);
         return OrderMapper.toDto(orderRepository.save(order));
     }
 
@@ -188,10 +169,10 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse prepare(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-        if (!order.getStatus().equals("CONFIRMED")) {
+        if (!order.getStatus().equals(Status.CONFIRMED)) {
             throw new IllegalArgumentException("Order must be in CONFIRMED status to prepare");
         }
-        order.setStatus("PREPARING");
+        order.setStatus(Status.PREPARING);
         return OrderMapper.toDto(orderRepository.save(order));
     }
 
@@ -199,10 +180,10 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse onTheWay(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-        if (!order.getStatus().equals("PREPARING")) {
+        if (!order.getStatus().equals(Status.PREPARING)) {
             throw new IllegalArgumentException("Order must be in PREPARING status to go on the way");
         }
-        order.setStatus("ON_THE_WAY");
+        order.setStatus(Status.ON_THE_WAY);
         return OrderMapper.toDto(orderRepository.save(order));
     }
 
@@ -210,10 +191,10 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse deliver(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-        if (!order.getStatus().equals("ON_THE_WAY")) {
+        if (!order.getStatus().equals(Status.ON_THE_WAY)) {
             throw new IllegalArgumentException("Order must be in ON_THE_WAY status to deliver");
         }
-        order.setStatus("DELIVERED");
+        order.setStatus(Status.DELIVERED);
         order.setDeliveredAt(LocalDateTime.now());
         return OrderMapper.toDto(orderRepository.save(order));
     }
@@ -245,6 +226,22 @@ public class OrderServiceImpl implements OrderService {
     public PageableResponse<OrderResponse> findByDeliveryPersonId(Long deliveryPersonId, int page, int size) {
         Page<Order> orderPage = orderRepository.findByDeliveryPersonId(deliveryPersonId, PageRequest.of(page, size));
         return buildPageableResponse(orderPage);
+    }
+    //possible util
+    private BigDecimal applyCoupon(Long couponId, BigDecimal subtotal) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new ResourceNotFoundException("Coupon not found with id: " + couponId));
+        if (!coupon.getActive()) {
+            throw new IllegalArgumentException("Coupon is not active");
+        }
+        if (coupon.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Coupon has expired");
+        }
+        BigDecimal discount = subtotal.multiply(coupon.getValue()
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
+        coupon.setActive(false);
+        couponRepository.save(coupon);
+        return discount;
     }
 
     private PageableResponse<OrderResponse> buildPageableResponse(Page<Order> orderPage) {

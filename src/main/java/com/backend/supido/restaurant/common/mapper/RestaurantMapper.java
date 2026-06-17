@@ -1,4 +1,4 @@
-package com.backend.supido.restaurant.mapper;
+package com.backend.supido.restaurant.common.mapper;
 
 import com.backend.supido.restaurant.domain.dto.request.RestaurantDTORequest;
 import com.backend.supido.restaurant.domain.dto.response.RestaurantDTOResponse;

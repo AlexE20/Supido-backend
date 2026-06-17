@@ -10,7 +10,6 @@ public record MenuItemDTOResponse(
         String name,
         String description,
         BigDecimal price,
-        String category,
         String photoUrl,
         Boolean available
 ) {}

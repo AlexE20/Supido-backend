@@ -24,14 +24,11 @@ public class MenuItem {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "description")
+    @Column(name = "description", length = 250)
     private String description;
 
     @Column(name = "price", nullable = false)
     private BigDecimal price;
-
-    @Column(name = "category")
-    private String category;
 
     @Column(name = "photo_url")
     private String photoUrl;
