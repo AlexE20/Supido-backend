@@ -1,6 +1,7 @@
 package com.backend.supido.restaurant.controller;
 
 import com.backend.supido.common.GeneralResponse;
+import com.backend.supido.restaurant.common.enums.Category;
 import com.backend.supido.restaurant.domain.dto.request.RestaurantDTORequest;
 import com.backend.supido.restaurant.service.RestaurantService;
 import jakarta.validation.Valid;
@@ -79,5 +80,10 @@ public class RestaurantController {
                         .data(data)
                         .build()
                 );
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<GeneralResponse> getCategories() {
+        return buildResponse("Categories found", HttpStatus.OK, restaurantService.getCategories());
     }
 }

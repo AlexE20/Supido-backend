@@ -1,7 +1,8 @@
 package com.backend.supido.restaurant.service;
 
 import com.backend.supido.common.PageableResponse;
-import com.backend.supido.restaurant.mapper.RestaurantMapper;
+import com.backend.supido.restaurant.common.enums.Category;
+import com.backend.supido.restaurant.common.mapper.RestaurantMapper;
 import com.backend.supido.restaurant.domain.dto.request.RestaurantDTORequest;
 import com.backend.supido.restaurant.domain.dto.response.RestaurantDTOResponse;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
@@ -91,17 +92,42 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public List<RestaurantDTOResponse> findByCategory(String category) {
-        return restaurantRepository.findByCategory(category)
+        Category categoryEnum;
+        try {
+            String normalized = category.trim().toUpperCase().replace(" ", "_");
+            categoryEnum = Category.valueOf(normalized);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid category: " + category);
+        }
+
+        List<RestaurantDTOResponse> restaurants = restaurantRepository.findByCategory(categoryEnum)
                 .stream()
                 .map(RestaurantMapper::toResponse)
                 .toList();
+
+        if (restaurants.isEmpty()) {
+            throw new ResourceNotFoundException("No restaurants found with category " + category);
+        }
+
+        return restaurants;
     }
 
     @Override
     public List<RestaurantDTOResponse> findByName(String name) {
-        return restaurantRepository.findByNameContainingIgnoreCase(name)
+        List<RestaurantDTOResponse> restaurants = restaurantRepository.findByNameContainingIgnoreCase(name)
                 .stream()
                 .map(RestaurantMapper::toResponse)
                 .toList();
+
+        if (restaurants.isEmpty()) {
+            throw new ResourceNotFoundException("No restaurants found with name " + name);
+        }
+
+        return restaurants;
+    }
+
+    @Override
+    public Category[] getCategories() {
+        return Category.values();
     }
 }
