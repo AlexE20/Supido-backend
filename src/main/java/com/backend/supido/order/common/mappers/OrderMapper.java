@@ -1,6 +1,6 @@
 package com.backend.supido.order.common.mappers;
 
-import com.backend.supido.order.domain.dto.RestaurantSummaryDTO;
+import com.backend.supido.common.utils.RestaurantSummaryDTO;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
 import com.backend.supido.order.domain.dto.response.OrderResponse;
@@ -8,10 +8,7 @@ import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.orderItem.domain.dto.response.OrderItemResponse;
 import com.backend.supido.orderItem.mapper.OrderItemMapper;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
-import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
