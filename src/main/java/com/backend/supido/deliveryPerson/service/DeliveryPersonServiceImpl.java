@@ -1,5 +1,6 @@
 package com.backend.supido.deliveryPerson.service;
 
+import com.backend.supido.common.utils.GeoUtils;
 import com.backend.supido.deliveryPerson.domain.dto.request.CreateDeliveryPersonRequest;
 import com.backend.supido.deliveryPerson.domain.dto.request.UpdateDeliveryPersonRequest;
 import com.backend.supido.deliveryPerson.domain.dto.response.DeliveryPersonResponse;
@@ -54,6 +55,15 @@ public class DeliveryPersonServiceImpl implements DeliveryPersonService {
         return deliveryPersonRepository.findByAvailableTrue()
                 .stream()
                 .map(DeliveryPersonMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Long> findNearbyAvailableUserIds(Double targetLat, Double targetLng, double radiusKm) {
+        return deliveryPersonRepository.findByAvailableTrue()
+                .stream().filter(dp -> dp.getLatitude() != null && dp.getLongitude() != null)
+                .filter(dp -> GeoUtils.calculateDistanceKm(targetLat, targetLng, dp.getLatitude(), dp.getLongitude()) <= radiusKm)
+                .map(DeliveryPerson::getUserId)
                 .collect(Collectors.toList());
     }
 
