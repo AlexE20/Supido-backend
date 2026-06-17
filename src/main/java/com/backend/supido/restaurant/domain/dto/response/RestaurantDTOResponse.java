@@ -9,6 +9,7 @@ import java.time.LocalTime;
 @Builder
 public record RestaurantDTOResponse(
         Long id,
+        Long userId,
         String name,
         Category category,
         String address,

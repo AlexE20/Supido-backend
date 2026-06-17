@@ -15,4 +15,5 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     List<Restaurant> findByNameContainingIgnoreCase(String name);
     boolean existsByName(String name);
     boolean existsByNameAndIdNot(String name, Long id);
+    boolean existsByUserId(Long userId);
 }

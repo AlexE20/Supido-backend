@@ -1,5 +1,6 @@
 package com.backend.supido.restaurant.controller;
 
+import com.backend.supido.auth.domain.entities.User;
 import com.backend.supido.common.GeneralResponse;
 import com.backend.supido.restaurant.common.enums.Category;
 import com.backend.supido.restaurant.domain.dto.request.RestaurantDTORequest;
@@ -8,6 +9,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -50,9 +53,10 @@ public class RestaurantController {
     }
 
     @PostMapping
-    public ResponseEntity<GeneralResponse> create(@Valid @RequestBody RestaurantDTORequest request) {
+    @PreAuthorize("hasRole('RESTAURANT')")
+    public ResponseEntity<GeneralResponse> create(@Valid @RequestBody RestaurantDTORequest request,@AuthenticationPrincipal User user) {
         return buildResponse("Restaurant has been created", HttpStatus.CREATED,
-                restaurantService.createRestaurant(request));
+                restaurantService.createRestaurant(request,user));
     }
 
     @PutMapping("/{id}")

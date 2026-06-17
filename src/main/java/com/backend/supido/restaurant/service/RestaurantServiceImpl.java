@@ -1,5 +1,6 @@
 package com.backend.supido.restaurant.service;
 
+import com.backend.supido.auth.domain.entities.User;
 import com.backend.supido.common.PageableResponse;
 import com.backend.supido.restaurant.common.enums.Category;
 import com.backend.supido.restaurant.common.mapper.RestaurantMapper;
@@ -23,11 +24,14 @@ public class RestaurantServiceImpl implements RestaurantService {
     private final RestaurantRepository restaurantRepository;
 
     @Override
-    public RestaurantDTOResponse createRestaurant(RestaurantDTORequest request) {
+    public RestaurantDTOResponse createRestaurant(RestaurantDTORequest request, User user) {
         if (restaurantRepository.existsByName(request.name())) {
             throw new IllegalArgumentException("Restaurant with name " + request.name() + " already exists");
         }
-        Restaurant restaurant = RestaurantMapper.toEntity(request);
+        if(restaurantRepository.existsByUserId(user.getId())){
+            throw new IllegalArgumentException("Forbidden action: this user already owns a restaurant");
+        }
+        Restaurant restaurant = RestaurantMapper.toEntity(request,user);
         return RestaurantMapper.toResponse(restaurantRepository.save(restaurant));
     }
 

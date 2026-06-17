@@ -1,6 +1,7 @@
 package com.backend.supido.restaurant.domain.entity;
 
 
+import com.backend.supido.auth.domain.entities.User;
 import com.backend.supido.menuItem.domain.entity.MenuItem;
 import com.backend.supido.restaurant.common.enums.Category;
 import jakarta.persistence.*;
@@ -55,6 +56,10 @@ public class Restaurant {
     protected void onCreate() {
         if (this.averageRating == null) this.averageRating = 0.0;
     }
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MenuItem> menuItems;
