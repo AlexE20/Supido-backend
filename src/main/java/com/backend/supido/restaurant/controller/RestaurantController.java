@@ -59,15 +59,18 @@ public class RestaurantController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('RESTAURANT')")
     public ResponseEntity<GeneralResponse> update(@PathVariable Long id,
-                                                  @Valid @RequestBody RestaurantDTORequest request) {
+                                                  @Valid @RequestBody RestaurantDTORequest request,
+                                                  @AuthenticationPrincipal User user) {
         return buildResponse("Restaurant has been updated", HttpStatus.OK,
-                restaurantService.updateRestaurant(id, request));
+                restaurantService.updateRestaurant(id, request,user));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<GeneralResponse> delete(@PathVariable Long id) {
-        restaurantService.deleteRestaurant(id);
+    @PreAuthorize("hasRole('RESTAURANT')")
+    public ResponseEntity<GeneralResponse> delete(@PathVariable Long id,@AuthenticationPrincipal User user) {
+        restaurantService.deleteRestaurant(id,user);
         return buildResponse("Restaurant has been deleted", HttpStatus.OK, null);
     }
 

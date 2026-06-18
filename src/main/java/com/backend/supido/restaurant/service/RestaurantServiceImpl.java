@@ -66,13 +66,19 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
-    public RestaurantDTOResponse updateRestaurant(Long id, RestaurantDTORequest request) {
+    public RestaurantDTOResponse updateRestaurant(Long id, RestaurantDTORequest request, User user) {
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id " + id));
 
         if (restaurantRepository.existsByNameAndIdNot(request.name(), id)) {
             throw new IllegalArgumentException("Restaurant with name '" + request.name() + "' already exists");
         }
+
+        if(!user.getId().equals(restaurant.getUser().getId())) {
+            throw new IllegalArgumentException("This user is not allowed to update restaurant");
+
+        }
+
 
         restaurant.setName(request.name());
         restaurant.setCategory(request.category());
@@ -87,10 +93,15 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
-    public void deleteRestaurant(Long id) {
-        if (!restaurantRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Restaurant not found with id " + id);
+    public void deleteRestaurant(Long id,User user) {
+        Restaurant restaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id " + id));
+
+        if(!user.getId().equals(restaurant.getUser().getId())) {
+            throw new IllegalArgumentException("This user is not allowed to do this action");
+
         }
+
         restaurantRepository.deleteById(id);
     }
 
