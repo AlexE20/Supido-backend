@@ -10,7 +10,6 @@ public interface OrderTrackingService {
     OrderTrackingResponse create(CreateOrderTrackingRequest request);
     OrderTrackingResponse findById(Long id);
     OrderTrackingResponse findByOrderId(Long orderId);
-    List<OrderTrackingResponse> findByDeliveryPersonId(Long deliveryPersonId);
     List<OrderTrackingResponse> findAll();
     OrderTrackingResponse update(Long id, UpdateOrderTrackingRequest request);
     void delete(Long id);

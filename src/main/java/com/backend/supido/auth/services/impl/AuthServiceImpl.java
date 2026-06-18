@@ -44,7 +44,7 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
-        String token = jwtUtil.generateToken(Map.of("role", user.getRole().getName()), user);
+        String token = jwtUtil.generateToken(Map.of("role", user.getRole().getName(), "userId", user.getId()), user);
         return new AuthResponse(token);
     }
 
@@ -59,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
-        String token = jwtUtil.generateToken(Map.of("role", user.getRole().getName()), user);
+        String token = jwtUtil.generateToken(Map.of("role", user.getRole().getName(), "userId", user.getId()), user);
         return new AuthResponse(token);
     }
 }

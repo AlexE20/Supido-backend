@@ -68,6 +68,10 @@ public class JwtUtil {
         return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Number.class).longValue());
+    }
+
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }

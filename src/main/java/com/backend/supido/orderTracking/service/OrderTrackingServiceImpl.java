@@ -1,6 +1,7 @@
 package com.backend.supido.orderTracking.service;
 
 import com.backend.supido.exceptions.ResourceNotFoundException;
+import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.order.repository.OrderRepository;
 import com.backend.supido.orderTracking.domain.dto.request.CreateOrderTrackingRequest;
 import com.backend.supido.orderTracking.domain.dto.request.UpdateOrderTrackingRequest;
@@ -24,13 +25,12 @@ public class OrderTrackingServiceImpl implements OrderTrackingService {
 
     @Override
     public OrderTrackingResponse create(CreateOrderTrackingRequest request) {
-        if (!orderRepository.existsById(request.orderId())) {
-            throw new ResourceNotFoundException("Order not found with id: " + request.orderId());
-        }
-        if (orderTrackingRepository.findByOrderId(request.orderId()).isPresent()) {
+        Order order = orderRepository.findById(request.orderId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + request.orderId()));
+        if (orderTrackingRepository.findByOrder_Id(request.orderId()).isPresent()) {
             throw new IllegalArgumentException("Tracking already exists for orderId: " + request.orderId());
         }
-        return OrderTrackingMapper.toDto(orderTrackingRepository.save(OrderTrackingMapper.toEntity(request)));
+        return OrderTrackingMapper.toDto(orderTrackingRepository.save(OrderTrackingMapper.toEntity(request, order)));
     }
 
     @Override
@@ -40,17 +40,9 @@ public class OrderTrackingServiceImpl implements OrderTrackingService {
 
     @Override
     public OrderTrackingResponse findByOrderId(Long orderId) {
-        return orderTrackingRepository.findByOrderId(orderId)
+        return orderTrackingRepository.findByOrder_Id(orderId)
                 .map(OrderTrackingMapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("OrderTracking not found for orderId: " + orderId));
-    }
-
-    @Override
-    public List<OrderTrackingResponse> findByDeliveryPersonId(Long deliveryPersonId) {
-        return orderTrackingRepository.findByDeliveryPersonId(deliveryPersonId)
-                .stream()
-                .map(OrderTrackingMapper::toDto)
-                .collect(Collectors.toList());
     }
 
     @Override
@@ -64,12 +56,10 @@ public class OrderTrackingServiceImpl implements OrderTrackingService {
     @Override
     public OrderTrackingResponse update(Long id, UpdateOrderTrackingRequest request) {
         OrderTracking existing = findOrThrow(id);
-        if (request.deliveryPersonId() != null) existing.setDeliveryPersonId(request.deliveryPersonId());
         if (request.status() != null) existing.setStatus(request.status());
-        if (request.currentLatitude() != null) existing.setCurrentLatitude(request.currentLatitude());
-        if (request.currentLongitude() != null) existing.setCurrentLongitude(request.currentLongitude());
-        if (request.estimatedDeliveryTime() != null) existing.setEstimatedDeliveryTime(request.estimatedDeliveryTime());
-        existing.setUpdatedAt(LocalDateTime.now());
+        if (request.longitude() != null) existing.setLongitude(request.longitude());
+        if (request.latitude() != null) existing.setLatitude(request.latitude());
+        if (request.recordedAt() != null) existing.setRecordedAt(request.recordedAt());
         return OrderTrackingMapper.toDto(orderTrackingRepository.save(existing));
     }
 
