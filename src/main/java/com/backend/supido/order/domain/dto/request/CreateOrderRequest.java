@@ -2,6 +2,7 @@ package com.backend.supido.order.domain.dto.request;
 
 
 import com.backend.supido.orderItem.domain.dto.request.CreateOrderItemRequest;
+import com.backend.supido.payment.domain.enums.PaymentMethod;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,6 +31,8 @@ public record CreateOrderRequest(
         BigDecimal tip,
 
         @NotEmpty(message = "order must have at least one item")
-        List<CreateOrderItemRequest> items
+        List<CreateOrderItemRequest> items,
 
+        @NotNull(message = "paymentMethod is required")
+        PaymentMethod paymentMethod
 ) {}
