@@ -20,12 +20,14 @@ import com.backend.supido.order.repository.OrderRepository;
 import com.backend.supido.orderItem.domain.entity.OrderItem;
 import com.backend.supido.orderItem.mapper.OrderItemMapper;
 import com.backend.supido.orderItem.repository.OrderItemRepository;
+import com.backend.supido.payment.service.PaymentService;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
 import com.backend.supido.restaurant.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -45,7 +47,9 @@ public class OrderServiceImpl implements OrderService {
     private final CouponRepository couponRepository;
     private final NotificationService notificationService;
     private final DeliveryPersonService deliveryPersonService;
+    private final PaymentService paymentService;
 
+    @Transactional
     @Override
     public OrderResponse create(CreateOrderRequest request) {
         Restaurant restaurant = restaurantRepository.findById(request.restaurantId())
@@ -94,9 +98,12 @@ public class OrderServiceImpl implements OrderService {
         saved.setTip(tip);
         saved.setTotal(subtotal.subtract(discount).add(tip));
 
-        // crear notificacion
         Order finalOrder = orderRepository.save(saved);
 
+        // crear pago
+        paymentService.createForOrder(finalOrder.getId(), request.paymentMethod(), finalOrder.getTotal());
+
+        // crear notificacion
         notificationService.sendOrderNotification(finalOrder.getUserId(), finalOrder.getId(), NotificationType.ORDER_RECEIVED,
                 "Tu pedido fue recibido. El restaurante lo esta procesando.");
 
@@ -153,6 +160,7 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
+    @Transactional
     @Override
     public void cancel(Long id) {
         Order order = orderRepository.findById(id)
@@ -162,9 +170,12 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setStatus(Status.CANCELLED);
 
-        // crear notificacion
         Order saved = orderRepository.save(order);
 
+        // actualizar pago
+        paymentService.cancelPayment(saved.getId());
+
+        // crear notificacion
         notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
                 NotificationType.ORDER_CANCELLED, "Tu pedido fue cancelado sin cargo.");
     }
@@ -237,6 +248,9 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(Status.DELIVERED);
         order.setDeliveredAt(LocalDateTime.now());
         Order saved = orderRepository.save(order);
+
+        // pago (CASH)
+        paymentService.completeCashPayment(saved.getId());
 
         // crear notificacion
         notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
