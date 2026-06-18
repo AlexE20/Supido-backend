@@ -11,4 +11,6 @@ public enum NotificationType {
     RATE_YOUR_ORDER,
     ORDER_CANCELLED,
     NEW_ORDER_AVAILABLE,
+    CLAIM_APPROVED,
+    CLAIM_REJECTED,
 }

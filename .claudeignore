@@ -1,0 +1,28 @@
+# Bloquear configuraciones del IDE y dependencias
+.idea/
+.gradle/
+.mvn/
+node_modules/
+vendor/
+
+# Bloquear archivos de salida y compilación
+build/
+target/
+dist/
+out/
+*.jar
+*.war
+
+# Bloquear logs y bases de datos locales
+*.log
+*.sqlite
+.env
+.env.*
+
+# Archivos multimedia o pesados que Claude no puede procesar textualmente
+*.png
+*.jpg
+*.jpeg
+*.pdf
+*.zip
+*.tar.gz

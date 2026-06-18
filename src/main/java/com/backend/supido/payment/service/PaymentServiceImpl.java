@@ -7,7 +7,7 @@ import com.backend.supido.payment.domain.enums.PaymentMethod;
 import com.backend.supido.payment.domain.enums.PaymentStatus;
 import com.backend.supido.payment.mapper.PaymentMapper;
 import com.backend.supido.payment.repository.PaymentRepository;
-import com.backend.supido.payment.service.strategy.PaymentStrategy;
+import com.backend.supido.payment.strategy.PaymentStrategy;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
