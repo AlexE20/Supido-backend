@@ -1,8 +1,10 @@
 package com.backend.supido.websocket.controller;
 
+import com.backend.supido.deliveryPerson.domain.dto.response.DeliveryPersonResponse;
 import com.backend.supido.deliveryPerson.service.DeliveryPersonService;
 import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.order.repository.OrderRepository;
+import com.backend.supido.websocket.dto.DriverLocationBroadcast;
 import com.backend.supido.websocket.dto.LocationBroadcast;
 import com.backend.supido.websocket.dto.LocationUpdateMessage;
 import lombok.RequiredArgsConstructor;
@@ -29,11 +31,19 @@ public class LocationWebSocketController {
     public void handleLocationUpdate(LocationUpdateMessage message) {
         message.setTimestamp(LocalDateTime.now());
 
-        deliveryPersonService.updateLocation(
+        DeliveryPersonResponse driver = deliveryPersonService.updateLocation(
                 message.getDeliveryPersonId(),
                 message.getLatitude(),
                 message.getLongitude()
         );
+
+        messagingTemplate.convertAndSend("/topic/drivers/all", DriverLocationBroadcast.builder()
+                .deliveryPersonId(message.getDeliveryPersonId())
+                .latitude(message.getLatitude())
+                .longitude(message.getLongitude())
+                .available(driver.available())
+                .timestamp(message.getTimestamp())
+                .build());
 
         List<Order> activeOrders = orderRepository.findByDeliveryPersonId(message.getDeliveryPersonId());
         for (Order order : activeOrders) {
