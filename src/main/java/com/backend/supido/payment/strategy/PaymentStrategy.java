@@ -1,4 +1,4 @@
-package com.backend.supido.payment.service.strategy;
+package com.backend.supido.payment.strategy;
 
 import com.backend.supido.payment.domain.entity.Payment;
 import com.backend.supido.payment.domain.enums.PaymentMethod;

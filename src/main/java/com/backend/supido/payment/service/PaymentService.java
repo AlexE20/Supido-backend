@@ -12,4 +12,5 @@ public interface PaymentService {
     PaymentResponse findById(Long id);
     PaymentResponse findByOrderId(Long orderId);
     void cancelPayment(Long orderId);
+    void markRefunded(Long orderId);
 }
