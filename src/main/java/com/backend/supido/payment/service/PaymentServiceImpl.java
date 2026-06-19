@@ -68,7 +68,19 @@ public class PaymentServiceImpl implements PaymentService {
     public void cancelPayment(Long orderId) {
         Payment payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment not found for order id: " + orderId));
-        payment.setStatus(PaymentStatus.CANCELLED);
+
+        if (payment.getStatus() == PaymentStatus.COMPLETED) payment.setStatus(PaymentStatus.REFUNDED);
+        else payment.setStatus(PaymentStatus.CANCELLED);
+
         paymentRepository.save(payment);
     }
+
+    @Override
+    public void markRefunded(Long orderId) {
+        Payment payment = paymentRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found for order id: " + orderId));
+        payment.setStatus(PaymentStatus.REFUNDED);
+        paymentRepository.save(payment);
+    }
+
 }
