@@ -25,6 +25,8 @@ import com.backend.supido.orderItem.repository.OrderItemRepository;
 import com.backend.supido.payment.service.PaymentService;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
 import com.backend.supido.restaurant.repository.RestaurantRepository;
+import com.backend.supido.userAddress.domain.entity.UserAddress;
+import com.backend.supido.userAddress.repository.UserAddressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,6 +53,7 @@ public class OrderServiceImpl implements OrderService {
     private final DeliveryPersonService deliveryPersonService;
     private final PaymentService paymentService;
     private final ClaimService claimService;
+    private final UserAddressRepository userAddressRepository;
 
     @Transactional
     @Override
@@ -62,13 +65,18 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Restaurant is currently closed");
         }
 
-        Order order = OrderMapper.toEntityCreate(request, restaurant);
+        // direccion
+        UserAddress userAddress = userAddressRepository.findByIdAndUserId(request.userAddressId(), request.userId())
+                .orElseThrow(() -> new ResourceNotFoundException("UserAddress not found"));
+
+        Order order = OrderMapper.toEntityCreate(request, restaurant, userAddress);
         order.setStatus(Status.PENDING);
         order.setCreatedAt(LocalDateTime.now());
         order.setSubtotal(BigDecimal.ZERO);
         order.setDiscount(BigDecimal.ZERO);
         order.setShippingCost(BigDecimal.ZERO);
         order.setTotal(BigDecimal.ZERO);
+
         Order saved = orderRepository.save(order);
 
         // Procesar items
@@ -180,7 +188,7 @@ public class OrderServiceImpl implements OrderService {
 
         // crear notificacion
         notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
-                NotificationType.ORDER_CANCELLED, "Tu pedido fue cancelado sin cargo.");
+                NotificationType.ORDER_CANCELLED, "Your order was cancelled free of charge.");
     }
 
     @Override
