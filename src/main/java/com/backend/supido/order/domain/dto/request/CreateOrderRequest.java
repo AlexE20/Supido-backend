@@ -3,6 +3,7 @@ package com.backend.supido.order.domain.dto.request;
 
 import com.backend.supido.orderItem.domain.dto.request.CreateOrderItemRequest;
 import com.backend.supido.payment.domain.enums.PaymentMethod;
+import com.backend.supido.userAddress.domain.entity.UserAddress;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,8 +25,8 @@ public record CreateOrderRequest(
 
         Long couponId,
 
-        @NotBlank(message = "deliveryAddress is required")
-        String deliveryAddress,
+        @NotNull(message = "userAddressId is required")
+        Long userAddressId,
 
         @DecimalMin(value = "0.0", inclusive = true, message = "tip must be >= 0")
         BigDecimal tip,
