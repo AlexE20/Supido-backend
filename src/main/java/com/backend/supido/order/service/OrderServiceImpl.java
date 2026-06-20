@@ -10,10 +10,12 @@ import com.backend.supido.menuItem.domain.entity.MenuItem;
 import com.backend.supido.menuItem.repository.MenuItemRepository;
 import com.backend.supido.notification.domain.enums.NotificationType;
 import com.backend.supido.notification.service.NotificationService;
+import com.backend.supido.claim.service.ClaimService;
 import com.backend.supido.order.common.enums.Status;
 import com.backend.supido.order.common.mappers.OrderMapper;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
+import com.backend.supido.order.domain.dto.response.OrderReceiptResponse;
 import com.backend.supido.order.domain.dto.response.OrderResponse;
 import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.order.repository.OrderRepository;
@@ -48,6 +50,7 @@ public class OrderServiceImpl implements OrderService {
     private final NotificationService notificationService;
     private final DeliveryPersonService deliveryPersonService;
     private final PaymentService paymentService;
+    private final ClaimService claimService;
 
     @Transactional
     @Override
@@ -274,6 +277,17 @@ public class OrderServiceImpl implements OrderService {
                 NotificationType.DELIVERY_ASSIGNED, "Se asignó un repartidor a tu pedido. Pronto saldrá a buscarlo.");
 
         return OrderMapper.toDto(saved);
+    }
+
+    @Override
+    public OrderReceiptResponse getReceipt(Long id) {
+        OrderResponse order = findById(id);
+
+        return OrderReceiptResponse.builder()
+                .order(order)
+                .payment(paymentService.findByOrderId(id))
+                .claims(claimService.findByOrderId(id))
+                .build();
     }
 
     @Override
