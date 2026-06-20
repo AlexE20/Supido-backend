@@ -3,6 +3,7 @@ package com.backend.supido.order.service;
 import com.backend.supido.common.PageableResponse;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
+import com.backend.supido.order.domain.dto.response.OrderReceiptResponse;
 import com.backend.supido.order.domain.dto.response.OrderResponse;
 
 import java.util.List;
@@ -24,6 +25,9 @@ public interface OrderService {
 
     // Asignación
     OrderResponse assignDeliveryPerson(Long id, Long deliveryPersonId);
+
+    // Recibo
+    OrderReceiptResponse getReceipt(Long id);
 
     // Consultas por relación
     PageableResponse<OrderResponse> findByUserId(Long userId, int page, int size);
