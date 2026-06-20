@@ -59,6 +59,6 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void notifyNewOrderToDeliveryPersons(List<Long> repartidorUserIds, Long orderId) {
         repartidorUserIds.forEach(repartidorUserId -> sendOrderNotification(repartidorUserId, orderId, NotificationType.NEW_ORDER_AVAILABLE,
-                "Hay un pedido disponible cerca de ti"));
+                "There is an available order near you."));
     }
 }

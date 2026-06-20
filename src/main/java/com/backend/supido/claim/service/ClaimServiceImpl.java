@@ -59,7 +59,7 @@ public class ClaimServiceImpl implements ClaimService {
         paymentService.markRefunded(saved.getOrderId());
 
         notificationService.sendOrderNotification(saved.getUserId(), saved.getOrderId(),
-                NotificationType.CLAIM_APPROVED, "Tu reclamo fue aprobado. Se procesará un reembolso.");
+                NotificationType.CLAIM_APPROVED, "Your claim has been approved. A refund will be processed.");
 
         return ClaimMapper.toDto(saved);
     }
@@ -77,7 +77,7 @@ public class ClaimServiceImpl implements ClaimService {
         Claim saved = claimRepository.save(claim);
 
         notificationService.sendOrderNotification(saved.getUserId(), saved.getOrderId(),
-                NotificationType.CLAIM_REJECTED, "Tu reclamo fue revisado y no fue aprobado.");
+                NotificationType.CLAIM_REJECTED, "Your claim has been reviewed and was not approved.");
 
         return ClaimMapper.toDto(saved);
     }
