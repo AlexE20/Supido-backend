@@ -1,5 +1,6 @@
 package com.backend.supido.userAddress.service;
 
+import com.backend.supido.common.utils.JwtValidator;
 import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.user.domain.entity.User;
 import com.backend.supido.user.repository.UserRepository;
@@ -9,7 +10,6 @@ import com.backend.supido.userAddress.domain.entity.UserAddress;
 import com.backend.supido.userAddress.mapper.UserAddressMapper;
 import com.backend.supido.userAddress.repository.UserAddressRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,11 +21,12 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     private final UserAddressRepository userAddressRepository;
     private final UserRepository userRepository;
+    private final JwtValidator jwtValidator;
 
     @Override
     public UserAddressResponse create(Long userId, UserAddressRequest request, User user) {
         User userReq = findUser(userId);
-        validate(userReq, user);
+        jwtValidator.validate(userReq, user);
         isAddressExisting(request,user);
         UserAddress address = UserAddressMapper.toEntity(request, userReq);
 
@@ -35,7 +36,7 @@ public class UserAddressServiceImpl implements UserAddressService {
     @Override
     public UserAddressResponse findByName(Long userId, String addressName, User user) {
         User userReq = findUser(userId);
-        validate(userReq, user);
+        jwtValidator.validate(userReq, user);
         UserAddress address = userAddressRepository.findByLabelAndUserId(addressName, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
         return UserAddressMapper.toDto(address);
@@ -44,14 +45,14 @@ public class UserAddressServiceImpl implements UserAddressService {
     @Override
     public UserAddressResponse findById(Long userId, Long addressId, User user) {
         User userReq = findUser(userId);
-        validate(userReq, user);
+        jwtValidator.validate(userReq, user);
         return UserAddressMapper.toDto(findAddress(userId, addressId));
     }
 
     @Override
     public List<UserAddressResponse> findAllByUserId(Long userId, User user) {
         User userReq = findUser(userId);
-        validate(userReq, user);
+        jwtValidator.validate(userReq, user);
         return userAddressRepository.findAllByUserId(userId)
                 .stream()
                 .map(UserAddressMapper::toDto)
@@ -61,7 +62,7 @@ public class UserAddressServiceImpl implements UserAddressService {
     @Override
     public UserAddressResponse update(Long userId, Long addressId, UserAddressRequest request, User user) {
         User userReq = findUser(userId);
-        validate(userReq, user);
+        jwtValidator.validate(userReq, user);
         isAddressExisting(request,user);
         UserAddress address = findAddress(userId, addressId);
         address.setLabel(request.getLabel());
@@ -75,15 +76,10 @@ public class UserAddressServiceImpl implements UserAddressService {
     @Override
     public void delete(Long userId, Long addressId, User user) {
         User userReq = findUser(userId);
-        validate(userReq, user);
+        jwtValidator.validate(userReq, user);
         userAddressRepository.delete(findAddress(userId, addressId));
     }
 
-    private void validate(User userReq, User user) {
-        if (user == null || !user.getId().equals(userReq.getId())) {
-            throw new AccessDeniedException("You do not have permission to access this resource");
-        }
-    }
 
     private User findUser(Long userId) {
         return userRepository.findById(userId)
