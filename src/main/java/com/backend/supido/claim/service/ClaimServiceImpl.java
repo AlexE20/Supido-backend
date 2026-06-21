@@ -15,6 +15,7 @@ import com.backend.supido.order.common.enums.Status;
 import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.order.repository.OrderRepository;
 import com.backend.supido.payment.service.PaymentService;
+import com.backend.supido.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,15 +32,15 @@ public class ClaimServiceImpl implements ClaimService {
     private final NotificationService notificationService;
 
     @Override
-    public ClaimResponse create(CreateClaimRequest request) {
+    public ClaimResponse create(CreateClaimRequest request, User user) {
         Order order = orderRepository.findById(request.orderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + request.orderId()));
-
+        
         if (order.getStatus() != Status.DELIVERED) {
             throw new IllegalArgumentException("Claims can only be filed for delivered orders");
         }
 
-        Claim claim = ClaimMapper.toEntity(request);
+        Claim claim = ClaimMapper.toEntity(request,user);
         return ClaimMapper.toDto(claimRepository.save(claim));
     }
 
@@ -58,7 +59,7 @@ public class ClaimServiceImpl implements ClaimService {
 
         paymentService.markRefunded(saved.getOrderId());
 
-        notificationService.sendOrderNotification(saved.getUserId(), saved.getOrderId(),
+        notificationService.sendOrderNotification(saved.getUser().getId(), saved.getOrderId(),
                 NotificationType.CLAIM_APPROVED, "Your claim has been approved. A refund will be processed.");
 
         return ClaimMapper.toDto(saved);
@@ -76,7 +77,7 @@ public class ClaimServiceImpl implements ClaimService {
         claim.setStatus(ClaimStatus.REJECTED);
         Claim saved = claimRepository.save(claim);
 
-        notificationService.sendOrderNotification(saved.getUserId(), saved.getOrderId(),
+        notificationService.sendOrderNotification(saved.getUser().getId(), saved.getOrderId(),
                 NotificationType.CLAIM_REJECTED, "Your claim has been reviewed and was not approved.");
 
         return ClaimMapper.toDto(saved);

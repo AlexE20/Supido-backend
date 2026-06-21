@@ -4,10 +4,12 @@ import com.backend.supido.claim.domain.dto.request.ApproveClaimRequest;
 import com.backend.supido.claim.domain.dto.request.CreateClaimRequest;
 import com.backend.supido.claim.service.ClaimService;
 import com.backend.supido.common.GeneralResponse;
+import com.backend.supido.user.domain.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -21,8 +23,8 @@ public class ClaimController {
     private final ClaimService claimService;
 
     @PostMapping
-    public ResponseEntity<GeneralResponse> create(@Valid @RequestBody CreateClaimRequest request) {
-        return buildResponse("Claim created", HttpStatus.CREATED, claimService.create(request));
+    public ResponseEntity<GeneralResponse> create(@Valid @RequestBody CreateClaimRequest request, @AuthenticationPrincipal User user) {
+        return buildResponse("Claim created", HttpStatus.CREATED, claimService.create(request,user));
     }
 
     @GetMapping("/{id}")

@@ -9,8 +9,6 @@ public record CreateClaimRequest(
         @NotNull(message = "orderId is required")
         Long orderId,
 
-        @NotNull(message = "userId is required")
-        Long userId,
 
         @NotNull(message = "type is required")
         ClaimType type,
