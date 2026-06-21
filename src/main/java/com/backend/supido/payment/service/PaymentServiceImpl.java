@@ -6,6 +6,8 @@ import com.backend.supido.payment.domain.dto.response.PaymentResponse;
 import com.backend.supido.payment.domain.entity.Payment;
 import com.backend.supido.payment.domain.enums.PaymentMethod;
 import com.backend.supido.payment.domain.enums.PaymentStatus;
+import com.backend.supido.user.domain.entity.User;
+import org.springframework.security.access.AccessDeniedException;
 import com.backend.supido.payment.mapper.PaymentMapper;
 import com.backend.supido.payment.repository.PaymentRepository;
 import com.backend.supido.payment.strategy.PaymentStrategy;
@@ -54,15 +56,25 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentResponse findById(Long id) {
-        return PaymentMapper.toDto(paymentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Payment not found with id: " + id)));
+    public PaymentResponse findById(Long id, User user) {
+        Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found with id: " + id));
+        validateOwnership(payment, user);
+        return PaymentMapper.toDto(payment);
     }
 
     @Override
-    public PaymentResponse findByOrderId(Long orderId) {
-        return PaymentMapper.toDto(paymentRepository.findByOrderId(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Payment not found for order id: " + orderId)));
+    public PaymentResponse findByOrderId(Long orderId, User user) {
+        Payment payment = paymentRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found for order id: " + orderId));
+        validateOwnership(payment, user);
+        return PaymentMapper.toDto(payment);
+    }
+
+    private void validateOwnership(Payment payment, User user) {
+        if (!payment.getOrder().getUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException("You do not have permission to access this payment");
+        }
     }
 
     @Override
