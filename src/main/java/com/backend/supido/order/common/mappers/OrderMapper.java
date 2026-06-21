@@ -8,6 +8,7 @@ import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.orderItem.domain.dto.response.OrderItemResponse;
 import com.backend.supido.orderItem.mapper.OrderItemMapper;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
+import com.backend.supido.user.domain.entity.User;
 import com.backend.supido.userAddress.domain.entity.UserAddress;
 import org.springframework.stereotype.Component;
 
@@ -18,9 +19,9 @@ import java.util.stream.Collectors;
 
 public class OrderMapper {
 
-    public static Order toEntityCreate(CreateOrderRequest request, Restaurant restaurant, UserAddress userAddress) {
+    public static Order toEntityCreate(CreateOrderRequest request, Restaurant restaurant, UserAddress userAddress, User user) {
         return Order.builder()
-                .userId(request.userId())
+                .user(user)
                 .restaurant(restaurant)
                 .couponId(request.couponId())
                 .userAddress(userAddress)
@@ -47,15 +48,14 @@ public class OrderMapper {
                 .name(r.getName())
                 .build();
 
-        List<OrderItemResponse> items = order.getItems() != null
-                ? order.getItems().stream()
+        List<OrderItemResponse> items = order.getItems() != null ?
+                order.getItems().stream()
                 .map(OrderItemMapper::toDto)
                 .collect(Collectors.toList())
                 : List.of();
 
         return new OrderResponse(
                 order.getId(),
-                order.getUserId(),
                 restaurantSummary,
                 order.getDeliveryPersonId(),
                 order.getCouponId(),

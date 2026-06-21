@@ -1,6 +1,7 @@
 package com.backend.supido.order.service;
 
 import com.backend.supido.common.PageableResponse;
+import com.backend.supido.common.utils.JwtValidator;
 import com.backend.supido.common.utils.RestaurantUtils;
 import com.backend.supido.coupon.domain.entity.Coupon;
 import com.backend.supido.coupon.repository.CouponRepository;
@@ -25,6 +26,9 @@ import com.backend.supido.orderItem.repository.OrderItemRepository;
 import com.backend.supido.payment.service.PaymentService;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
 import com.backend.supido.restaurant.repository.RestaurantRepository;
+import com.backend.supido.user.domain.entity.User;
+import com.backend.supido.user.repository.UserRepository;
+import com.backend.supido.user.service.UserServiceImpl;
 import com.backend.supido.userAddress.domain.entity.UserAddress;
 import com.backend.supido.userAddress.repository.UserAddressRepository;
 import lombok.RequiredArgsConstructor;
@@ -54,10 +58,13 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentService paymentService;
     private final ClaimService claimService;
     private final UserAddressRepository userAddressRepository;
+    private final UserRepository userRepository;
 
     @Transactional
-    @Override
-    public OrderResponse create(CreateOrderRequest request) {
+    @Override //Al crear la orden no te sale el arreglo de items
+    public OrderResponse create(CreateOrderRequest request, User user) {
+       userRepository.findById(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: "));
         Restaurant restaurant = restaurantRepository.findById(request.restaurantId())
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id: " + request.restaurantId()));
 
@@ -66,10 +73,10 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // direccion
-        UserAddress userAddress = userAddressRepository.findByIdAndUserId(request.userAddressId(), request.userId())
+        UserAddress userAddress = userAddressRepository.findByIdAndUserId(request.userAddressId(), user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("UserAddress not found"));
 
-        Order order = OrderMapper.toEntityCreate(request, restaurant, userAddress);
+        Order order = OrderMapper.toEntityCreate(request, restaurant, userAddress, user);
         order.setStatus(Status.PENDING);
         order.setCreatedAt(LocalDateTime.now());
         order.setSubtotal(BigDecimal.ZERO);
@@ -88,6 +95,7 @@ public class OrderServiceImpl implements OrderService {
             }
             return OrderItemMapper.toEntityCreate(itemRequest, saved, menuItem);
         }).collect(Collectors.toList());
+
 
         orderItemRepository.saveAll(orderItems);
 
@@ -115,7 +123,7 @@ public class OrderServiceImpl implements OrderService {
         paymentService.createForOrder(finalOrder.getId(), request.paymentMethod(), finalOrder.getTotal());
 
         // crear notificacion
-        notificationService.sendOrderNotification(finalOrder.getUserId(), finalOrder.getId(), NotificationType.ORDER_RECEIVED,
+        notificationService.sendOrderNotification(user.getId(), finalOrder.getId(), NotificationType.ORDER_RECEIVED,
                 "Your order has been received. The restaurant is processing it.");
 
         return OrderMapper.toDto(finalOrder);
@@ -137,12 +145,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderResponse update(Long id, UpdateOrderRequest request) {
+    public OrderResponse update(Long id, UpdateOrderRequest request,User user) {
         Order existing = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
         Order updated = OrderMapper.toEntityUpdate(request);
         updated.setId(existing.getId());
-        updated.setUserId(existing.getUserId());
         updated.setRestaurant(existing.getRestaurant());
         updated.setSubtotal(existing.getSubtotal());
         updated.setShippingCost(existing.getShippingCost());
@@ -187,7 +194,7 @@ public class OrderServiceImpl implements OrderService {
         paymentService.cancelPayment(saved.getId());
 
         // crear notificacion
-        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+        notificationService.sendOrderNotification(saved.getUser().getId(), saved.getId(),
                 NotificationType.ORDER_CANCELLED, "Your order was cancelled free of charge.");
     }
 
@@ -203,7 +210,7 @@ public class OrderServiceImpl implements OrderService {
         // crear notificacion
         Order saved = orderRepository.save(order);
 
-        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(), NotificationType.ORDER_CONFIRMED,
+        notificationService.sendOrderNotification(saved.getUser().getId(), saved.getId(), NotificationType.ORDER_CONFIRMED,
                 "The restaurant accepted your order and will start preparing it soon.");
 
         List<Long> nearbyDeliveryPersons = deliveryPersonService.findNearbyAvailableUserIds(
@@ -225,7 +232,7 @@ public class OrderServiceImpl implements OrderService {
         // crear notificacion
         Order saved = orderRepository.save(order);
 
-        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+        notificationService.sendOrderNotification(saved.getUser().getId(), saved.getId(),
                 NotificationType.ORDER_PREPARING, "Your order is being prepared. Estimated time: 20-30 min.");
 
         return OrderMapper.toDto(saved);
@@ -243,7 +250,7 @@ public class OrderServiceImpl implements OrderService {
         // crear notificacion
         Order saved = orderRepository.save(order);
 
-        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(), NotificationType.ORDER_ON_THE_WAY,
+        notificationService.sendOrderNotification(saved.getUser().getId(), saved.getId(), NotificationType.ORDER_ON_THE_WAY,
                 "Your order has been picked up by the delivery person and is on its way.");
 
         return OrderMapper.toDto(saved);
@@ -264,9 +271,9 @@ public class OrderServiceImpl implements OrderService {
         paymentService.completeCashPayment(saved.getId());
 
         // crear notificacion
-        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+        notificationService.sendOrderNotification(saved.getUser().getId(), saved.getId(),
                 NotificationType.ORDER_DELIVERED, "Your order has been delivered! We hope you enjoy it.");
-        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+        notificationService.sendOrderNotification(saved.getUser().getId(), saved.getId(),
                 NotificationType.RATE_YOUR_ORDER, "Rate your experience: restaurant and delivery person.");
 
         return OrderMapper.toDto(saved);
@@ -281,7 +288,7 @@ public class OrderServiceImpl implements OrderService {
         // crear notificacion
         Order saved = orderRepository.save(order);
 
-        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+        notificationService.sendOrderNotification(saved.getUser().getId(), saved.getId(),
                 NotificationType.DELIVERY_ASSIGNED, "A delivery person has been assigned to your order. Pickup is coming soon.");
 
         return OrderMapper.toDto(saved);

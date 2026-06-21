@@ -15,10 +15,6 @@ import java.util.List;
 
 @Builder
 public record CreateOrderRequest(
-        @NotNull(message = "userId is required")
-        @Positive(message = "userId must be a positive number")
-        Long userId,
-
         @NotNull(message = "restaurantId is required")
         @Positive(message = "restaurantId must be a positive number")
         Long restaurantId,

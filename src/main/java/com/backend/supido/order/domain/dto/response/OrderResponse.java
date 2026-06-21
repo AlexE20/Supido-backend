@@ -13,7 +13,6 @@ import java.util.List;
 @Builder
 public record OrderResponse(
         Long id,
-        Long userId,
         RestaurantSummaryDTO restaurant,
         Long deliveryPersonId,
         Long cuponId,
