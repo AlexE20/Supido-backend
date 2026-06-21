@@ -148,6 +148,10 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse update(Long id, UpdateOrderRequest request,User user) {
         Order existing = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+        if(!existing.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("This user has no permission to update this order");
+        }
+
         Order updated = OrderMapper.toEntityUpdate(request);
         updated.setId(existing.getId());
         updated.setRestaurant(existing.getRestaurant());
