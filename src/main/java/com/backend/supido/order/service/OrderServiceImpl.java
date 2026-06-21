@@ -249,9 +249,6 @@ public class OrderServiceImpl implements OrderService {
         order.setDeliveredAt(LocalDateTime.now());
         Order saved = orderRepository.save(order);
 
-        // pago (CASH)
-        paymentService.completeCashPayment(saved.getId());
-
         // crear notificacion
         notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
                 NotificationType.ORDER_DELIVERED, "¡Tu pedido fue entregado! Esperamos que lo disfrutes.");
@@ -274,6 +271,18 @@ public class OrderServiceImpl implements OrderService {
                 NotificationType.DELIVERY_ASSIGNED, "Se asignó un repartidor a tu pedido. Pronto saldrá a buscarlo.");
 
         return OrderMapper.toDto(saved);
+    }
+
+    @Override
+    public void confirmCashPayment(Long id, Long deliveryPersonId) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+
+        if (!order.getDeliveryPersonId().equals(deliveryPersonId)) {
+            throw new IllegalArgumentException("This delivery person does not have permission to confirm a cash payment");
+        }
+
+        paymentService.completeCashPayment(order.getId());
     }
 
     @Override

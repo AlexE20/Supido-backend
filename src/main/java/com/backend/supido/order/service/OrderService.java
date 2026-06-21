@@ -25,6 +25,9 @@ public interface OrderService {
     // Asignación
     OrderResponse assignDeliveryPerson(Long id, Long deliveryPersonId);
 
+    // Pago
+    void confirmCashPayment(Long id, Long deliveryPersonId);
+
     // Consultas por relación
     PageableResponse<OrderResponse> findByUserId(Long userId, int page, int size);
     PageableResponse<OrderResponse> findByRestaurantId(Long restaurantId, int page, int size);
