@@ -274,9 +274,6 @@ public class OrderServiceImpl implements OrderService {
         order.setDeliveredAt(LocalDateTime.now());
         Order saved = orderRepository.save(order);
 
-        // pago (CASH)
-        paymentService.completeCashPayment(saved.getId());
-
         // crear notificacion
         notificationService.sendOrderNotification(saved.getUser().getId(), saved.getId(),
                 NotificationType.ORDER_DELIVERED, "Your order has been delivered! We hope you enjoy it.");
@@ -302,10 +299,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public void confirmCashPayment(Long id, Long deliveryPersonId) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+
+        if (!order.getDeliveryPersonId().equals(deliveryPersonId)) {
+            throw new IllegalArgumentException("This delivery person does not have permission to confirm a cash payment");
+        }
+
+        paymentService.completeCashPayment(order.getId());
+    }
+      
+    @Override
     public OrderReceiptResponse getReceipt(Long id,User user) {
-        Order existingOrder= orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+        Order existingOrder= orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+        
         if(!existingOrder.getUser().getId().equals(user.getId())){
-            throw new IllegalArgumentException("You do not have permission to do this action.");
+              throw new IllegalArgumentException("You do not have permission to do this action.");
         }
         OrderResponse order = OrderMapper.toDto(existingOrder);
 

@@ -81,6 +81,12 @@ public class OrderController {
         return buildResponse("Delivery person assigned successfully", HttpStatus.OK, orderService.assignDeliveryPerson(id, deliveryPersonId));
     }
 
+    @PatchMapping("/{id}/confirm-cash-payment")
+    public ResponseEntity<GeneralResponse> confirmCashPayment(@PathVariable Long id, @RequestParam Long deliveryPersonId) {
+        orderService.confirmCashPayment(id, deliveryPersonId);
+        return buildResponse("Cash payment successfully confirmed", HttpStatus.OK, null);
+    }
+
     // Consultas por relación
     @GetMapping("/user/{userId}")
     public ResponseEntity<GeneralResponse> findByUserId(
