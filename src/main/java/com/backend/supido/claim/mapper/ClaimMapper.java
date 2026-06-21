@@ -4,6 +4,7 @@ import com.backend.supido.claim.domain.dto.request.CreateClaimRequest;
 import com.backend.supido.claim.domain.dto.response.ClaimResponse;
 import com.backend.supido.claim.domain.entity.Claim;
 import com.backend.supido.claim.domain.enums.ClaimStatus;
+import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.user.domain.entity.User;
 
 import java.time.LocalDateTime;

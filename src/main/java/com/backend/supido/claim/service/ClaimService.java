@@ -11,7 +11,7 @@ public interface ClaimService {
     ClaimResponse create(CreateClaimRequest request, User user);
     ClaimResponse approve(Long id, ApproveClaimRequest request);
     ClaimResponse reject(Long id);
-    ClaimResponse findById(Long id);
-    List<ClaimResponse> findByOrderId(Long orderId);
+    ClaimResponse findById(Long id, User user);
+    List<ClaimResponse> findByOrderId(Long orderId, User user);
     List<ClaimResponse> findByUserId(Long userId);
 }

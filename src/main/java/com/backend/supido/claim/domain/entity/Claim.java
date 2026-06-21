@@ -2,6 +2,7 @@ package com.backend.supido.claim.domain.entity;
 
 import com.backend.supido.claim.domain.enums.ClaimStatus;
 import com.backend.supido.claim.domain.enums.ClaimType;
+import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.user.domain.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,8 +22,9 @@ public class Claim {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "order_id", nullable = false)
-    private Long orderId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

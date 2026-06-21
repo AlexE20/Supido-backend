@@ -24,22 +24,22 @@ public class ClaimController {
 
     @PostMapping
     public ResponseEntity<GeneralResponse> create(@Valid @RequestBody CreateClaimRequest request, @AuthenticationPrincipal User user) {
-        return buildResponse("Claim created", HttpStatus.CREATED, claimService.create(request,user));
+        return buildResponse("Claim created", HttpStatus.CREATED, claimService.create(request, user));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<GeneralResponse> findById(@PathVariable Long id) {
-        return buildResponse("Claim retrieved", HttpStatus.OK, claimService.findById(id));
+    public ResponseEntity<GeneralResponse> findById(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        return buildResponse("Claim retrieved", HttpStatus.OK, claimService.findById(id, user));
     }
 
     @GetMapping("/order/{orderId}")
-    public ResponseEntity<GeneralResponse> findByOrderId(@PathVariable Long orderId) {
-        return buildResponse("Claims retrieved", HttpStatus.OK, claimService.findByOrderId(orderId));
+    public ResponseEntity<GeneralResponse> findByOrderId(@PathVariable Long orderId, @AuthenticationPrincipal User user) {
+        return buildResponse("Claims retrieved", HttpStatus.OK, claimService.findByOrderId(orderId, user));
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<GeneralResponse> findByUserId(@PathVariable Long userId) {
-        return buildResponse("Claims retrieved", HttpStatus.OK, claimService.findByUserId(userId));
+    @GetMapping("/my-claims")
+    public ResponseEntity<GeneralResponse> findMyClaims(@AuthenticationPrincipal User user) {
+        return buildResponse("Claims retrieved", HttpStatus.OK, claimService.findByUserId(user.getId()));
     }
 
     @PatchMapping("/{id}/approve")
