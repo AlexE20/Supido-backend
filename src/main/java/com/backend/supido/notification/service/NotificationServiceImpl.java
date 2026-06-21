@@ -6,6 +6,8 @@ import com.backend.supido.notification.domain.entities.Notification;
 import com.backend.supido.notification.domain.enums.NotificationType;
 import com.backend.supido.notification.mapper.NotificationMapper;
 import com.backend.supido.notification.repository.NotificationRepository;
+import com.backend.supido.order.domain.entity.Order;
+import com.backend.supido.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final OrderRepository orderRepository;
 
     @Override
     public void sendOrderNotification(Long userId, Long orderId, NotificationType type, String message) {
@@ -53,7 +56,11 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void notifyDeliveryNearby(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order with id: " + " not found"));
 
+        sendOrderNotification(order.getUserId(), orderId, NotificationType.DELIVERY_NEARBY,
+                "Your delivery person is nearby. Get ready to receive your order");
     }
 
     @Override
