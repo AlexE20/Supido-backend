@@ -4,14 +4,15 @@ import com.backend.supido.claim.domain.dto.request.CreateClaimRequest;
 import com.backend.supido.claim.domain.dto.response.ClaimResponse;
 import com.backend.supido.claim.domain.entity.Claim;
 import com.backend.supido.claim.domain.enums.ClaimStatus;
+import com.backend.supido.order.domain.entity.Order;
 
 import java.time.LocalDateTime;
 
 public class ClaimMapper {
 
-    public static Claim toEntity(CreateClaimRequest request) {
+    public static Claim toEntity(CreateClaimRequest request, Order order) {
         return Claim.builder()
-                .orderId(request.orderId())
+                .order(order)
                 .userId(request.userId())
                 .type(request.type())
                 .description(request.description())
@@ -23,7 +24,7 @@ public class ClaimMapper {
     public static ClaimResponse toDto(Claim claim) {
         return new ClaimResponse(
                 claim.getId(),
-                claim.getOrderId(),
+                claim.getOrder().getId(),
                 claim.getUserId(),
                 claim.getType(),
                 claim.getDescription(),
