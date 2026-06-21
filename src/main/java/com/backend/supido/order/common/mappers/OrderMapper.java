@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Component
 public class OrderMapper {
 
     public static Order toEntityCreate(CreateOrderRequest request, Restaurant restaurant, UserAddress userAddress, User user) {
@@ -56,6 +57,7 @@ public class OrderMapper {
 
         return new OrderResponse(
                 order.getId(),
+                order.getUser().getId(),
                 restaurantSummary,
                 order.getDeliveryPersonId(),
                 order.getCouponId(),

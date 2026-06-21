@@ -129,6 +129,7 @@ public class OrderServiceImpl implements OrderService {
         return OrderMapper.toDto(finalOrder);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public OrderResponse findById(Long id) {
         Order order = orderRepository.findById(id)
@@ -136,6 +137,7 @@ public class OrderServiceImpl implements OrderService {
         return OrderMapper.toDto(order);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<OrderResponse> findAll() {
         return orderRepository.findAll()
@@ -154,6 +156,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order updated = OrderMapper.toEntityUpdate(request);
         updated.setId(existing.getId());
+        updated.setUser(existing.getUser());
         updated.setRestaurant(existing.getRestaurant());
         updated.setSubtotal(existing.getSubtotal());
         updated.setShippingCost(existing.getShippingCost());
@@ -299,8 +302,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderReceiptResponse getReceipt(Long id) {
-        OrderResponse order = findById(id);
+    public OrderReceiptResponse getReceipt(Long id,User user) {
+        Order existingOrder= orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+        if(!existingOrder.getUser().getId().equals(user.getId())){
+            throw new IllegalArgumentException("You do not have permission to do this action.");
+        }
+        OrderResponse order = OrderMapper.toDto(existingOrder);
+
 
         return OrderReceiptResponse.builder()
                 .order(order)

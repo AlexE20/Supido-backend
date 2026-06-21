@@ -28,7 +28,7 @@ public interface OrderService {
     OrderResponse assignDeliveryPerson(Long id, Long deliveryPersonId);
 
     // Recibo
-    OrderReceiptResponse getReceipt(Long id);
+    OrderReceiptResponse getReceipt(Long id,User user);
 
     // Consultas por relación
     PageableResponse<OrderResponse> findByUserId(Long userId, int page, int size);

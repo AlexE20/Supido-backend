@@ -46,8 +46,8 @@ public class OrderController {
     }
 
     @GetMapping("/{id}/receipt")
-    public ResponseEntity<GeneralResponse> getReceipt(@PathVariable Long id) {
-        return buildResponse("Receipt retrieved successfully", HttpStatus.OK, orderService.getReceipt(id));
+    public ResponseEntity<GeneralResponse> getReceipt(@PathVariable Long id,@AuthenticationPrincipal User user) {
+        return buildResponse("Receipt retrieved successfully", HttpStatus.OK, orderService.getReceipt(id,user));
     }
 
     @PatchMapping("/{id}/cancel")
