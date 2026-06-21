@@ -4,10 +4,12 @@ import com.backend.supido.claim.domain.dto.request.ApproveClaimRequest;
 import com.backend.supido.claim.domain.dto.request.CreateClaimRequest;
 import com.backend.supido.claim.service.ClaimService;
 import com.backend.supido.common.GeneralResponse;
+import com.backend.supido.user.domain.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -21,23 +23,23 @@ public class ClaimController {
     private final ClaimService claimService;
 
     @PostMapping
-    public ResponseEntity<GeneralResponse> create(@Valid @RequestBody CreateClaimRequest request) {
-        return buildResponse("Claim created", HttpStatus.CREATED, claimService.create(request));
+    public ResponseEntity<GeneralResponse> create(@Valid @RequestBody CreateClaimRequest request, @AuthenticationPrincipal User user) {
+        return buildResponse("Claim created", HttpStatus.CREATED, claimService.create(request, user));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<GeneralResponse> findById(@PathVariable Long id) {
-        return buildResponse("Claim retrieved", HttpStatus.OK, claimService.findById(id));
+    public ResponseEntity<GeneralResponse> findById(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        return buildResponse("Claim retrieved", HttpStatus.OK, claimService.findById(id, user));
     }
 
     @GetMapping("/order/{orderId}")
-    public ResponseEntity<GeneralResponse> findByOrderId(@PathVariable Long orderId) {
-        return buildResponse("Claims retrieved", HttpStatus.OK, claimService.findByOrderId(orderId));
+    public ResponseEntity<GeneralResponse> findByOrderId(@PathVariable Long orderId, @AuthenticationPrincipal User user) {
+        return buildResponse("Claims retrieved", HttpStatus.OK, claimService.findByOrderId(orderId, user));
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<GeneralResponse> findByUserId(@PathVariable Long userId) {
-        return buildResponse("Claims retrieved", HttpStatus.OK, claimService.findByUserId(userId));
+    @GetMapping("/my-claims")
+    public ResponseEntity<GeneralResponse> findMyClaims(@AuthenticationPrincipal User user) {
+        return buildResponse("Claims retrieved", HttpStatus.OK, claimService.findByUserId(user.getId()));
     }
 
     @PatchMapping("/{id}/approve")

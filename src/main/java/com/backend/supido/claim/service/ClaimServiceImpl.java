@@ -15,7 +15,9 @@ import com.backend.supido.order.common.enums.Status;
 import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.order.repository.OrderRepository;
 import com.backend.supido.payment.service.PaymentService;
+import com.backend.supido.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,7 +33,7 @@ public class ClaimServiceImpl implements ClaimService {
     private final NotificationService notificationService;
 
     @Override
-    public ClaimResponse create(CreateClaimRequest request) {
+    public ClaimResponse create(CreateClaimRequest request, User user) {
         Order order = orderRepository.findById(request.orderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + request.orderId()));
 
@@ -39,7 +41,11 @@ public class ClaimServiceImpl implements ClaimService {
             throw new IllegalArgumentException("Claims can only be filed for delivered orders");
         }
 
-        Claim claim = ClaimMapper.toEntity(request);
+        if (order.getUserId() != user.getId()) {
+            throw new AccessDeniedException("You can only file claims for your own orders");
+        }
+
+        Claim claim = ClaimMapper.toEntity(request, order);
         return ClaimMapper.toDto(claimRepository.save(claim));
     }
 
@@ -56,10 +62,10 @@ public class ClaimServiceImpl implements ClaimService {
         claim.setRefundAmount(request.refundAmount());
         Claim saved = claimRepository.save(claim);
 
-        paymentService.markRefunded(saved.getOrderId());
+        paymentService.markRefunded(saved.getOrder().getId());
 
-        notificationService.sendOrderNotification(saved.getUserId(), saved.getOrderId(),
-                NotificationType.CLAIM_APPROVED, "Tu reclamo fue aprobado. Se procesará un reembolso.");
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getOrder().getId(),
+                NotificationType.CLAIM_APPROVED, "Your claim has been approved. A refund will be processed.");
 
         return ClaimMapper.toDto(saved);
     }
@@ -76,20 +82,29 @@ public class ClaimServiceImpl implements ClaimService {
         claim.setStatus(ClaimStatus.REJECTED);
         Claim saved = claimRepository.save(claim);
 
-        notificationService.sendOrderNotification(saved.getUserId(), saved.getOrderId(),
-                NotificationType.CLAIM_REJECTED, "Tu reclamo fue revisado y no fue aprobado.");
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getOrder().getId(),
+                NotificationType.CLAIM_REJECTED, "Your claim has been reviewed and was not approved.");
 
         return ClaimMapper.toDto(saved);
     }
 
     @Override
-    public ClaimResponse findById(Long id) {
-        return ClaimMapper.toDto(claimRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Claim not found with id: " + id)));
+    public ClaimResponse findById(Long id, User user) {
+        Claim claim = claimRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Claim not found with id: " + id));
+        if (!claim.getUserId().equals(user.getId())) {
+            throw new AccessDeniedException("You do not have permission to access this claim");
+        }
+        return ClaimMapper.toDto(claim);
     }
 
     @Override
-    public List<ClaimResponse> findByOrderId(Long orderId) {
+    public List<ClaimResponse> findByOrderId(Long orderId, User user) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+        if (order.getUserId() != user.getId()) {
+            throw new AccessDeniedException("You do not have permission to access claims for this order");
+        }
         return claimRepository.findByOrderId(orderId).stream()
                 .map(ClaimMapper::toDto)
                 .collect(Collectors.toList());
