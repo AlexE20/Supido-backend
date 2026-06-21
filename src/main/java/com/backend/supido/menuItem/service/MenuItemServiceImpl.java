@@ -82,7 +82,6 @@ public class MenuItemServiceImpl implements MenuItemService {
         menuItem.setName(request.name());
         menuItem.setDescription(request.description());
         menuItem.setPrice(request.price());
-        menuItem.setCategory(request.category());
         menuItem.setPhotoUrl(request.photoUrl());
         return MenuItemMapper.toResponse(menuItemRepository.save(menuItem));
     }

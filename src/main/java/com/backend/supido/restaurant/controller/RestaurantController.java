@@ -1,5 +1,6 @@
 package com.backend.supido.restaurant.controller;
 
+import com.backend.supido.user.domain.entity.User;
 import com.backend.supido.common.GeneralResponse;
 import com.backend.supido.restaurant.domain.dto.request.RestaurantDTORequest;
 import com.backend.supido.restaurant.service.RestaurantService;
@@ -7,6 +8,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -49,21 +52,25 @@ public class RestaurantController {
     }
 
     @PostMapping
-    public ResponseEntity<GeneralResponse> create(@Valid @RequestBody RestaurantDTORequest request) {
+    @PreAuthorize("hasRole('RESTAURANT')")
+    public ResponseEntity<GeneralResponse> create(@Valid @RequestBody RestaurantDTORequest request,@AuthenticationPrincipal User user) {
         return buildResponse("Restaurant has been created", HttpStatus.CREATED,
-                restaurantService.createRestaurant(request));
+                restaurantService.createRestaurant(request,user));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('RESTAURANT')")
     public ResponseEntity<GeneralResponse> update(@PathVariable Long id,
-                                                  @Valid @RequestBody RestaurantDTORequest request) {
+                                                  @Valid @RequestBody RestaurantDTORequest request,
+                                                  @AuthenticationPrincipal User user) {
         return buildResponse("Restaurant has been updated", HttpStatus.OK,
-                restaurantService.updateRestaurant(id, request));
+                restaurantService.updateRestaurant(id, request,user));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<GeneralResponse> delete(@PathVariable Long id) {
-        restaurantService.deleteRestaurant(id);
+    @PreAuthorize("hasRole('RESTAURANT')")
+    public ResponseEntity<GeneralResponse> delete(@PathVariable Long id,@AuthenticationPrincipal User user) {
+        restaurantService.deleteRestaurant(id,user);
         return buildResponse("Restaurant has been deleted", HttpStatus.OK, null);
     }
 
@@ -79,5 +86,10 @@ public class RestaurantController {
                         .data(data)
                         .build()
                 );
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<GeneralResponse> getCategories() {
+        return buildResponse("Categories found", HttpStatus.OK, restaurantService.getCategories());
     }
 }

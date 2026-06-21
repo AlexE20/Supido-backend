@@ -8,6 +8,7 @@ import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.orderItem.domain.dto.response.OrderItemResponse;
 import com.backend.supido.orderItem.mapper.OrderItemMapper;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
+import com.backend.supido.userAddress.domain.entity.UserAddress;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -17,12 +18,13 @@ import java.util.stream.Collectors;
 
 public class OrderMapper {
 
-    public static Order toEntityCreate(CreateOrderRequest request, Restaurant restaurant) {
+    public static Order toEntityCreate(CreateOrderRequest request, Restaurant restaurant, UserAddress userAddress) {
         return Order.builder()
                 .userId(request.userId())
                 .restaurant(restaurant)
                 .couponId(request.couponId())
-                .deliveryAddress(request.deliveryAddress())
+                .userAddress(userAddress)
+                .deliveryAddress(userAddress.getCity() + " " + userAddress.getStreet())
                 .tip(request.tip())
                 .build();
 

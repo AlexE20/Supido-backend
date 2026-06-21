@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class GeneralResponse {
+public class GeneralResponse{
     private String uri;
     private String message;
     private int status;

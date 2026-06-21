@@ -4,25 +4,34 @@ import com.backend.supido.common.PageableResponse;
 import com.backend.supido.common.utils.RestaurantUtils;
 import com.backend.supido.coupon.domain.entity.Coupon;
 import com.backend.supido.coupon.repository.CouponRepository;
+import com.backend.supido.deliveryPerson.service.DeliveryPersonService;
 import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.menuItem.domain.entity.MenuItem;
 import com.backend.supido.menuItem.repository.MenuItemRepository;
+import com.backend.supido.notification.domain.enums.NotificationType;
+import com.backend.supido.notification.service.NotificationService;
+import com.backend.supido.claim.service.ClaimService;
 import com.backend.supido.order.common.enums.Status;
 import com.backend.supido.order.common.mappers.OrderMapper;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
+import com.backend.supido.order.domain.dto.response.OrderReceiptResponse;
 import com.backend.supido.order.domain.dto.response.OrderResponse;
 import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.order.repository.OrderRepository;
 import com.backend.supido.orderItem.domain.entity.OrderItem;
 import com.backend.supido.orderItem.mapper.OrderItemMapper;
 import com.backend.supido.orderItem.repository.OrderItemRepository;
+import com.backend.supido.payment.service.PaymentService;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
 import com.backend.supido.restaurant.repository.RestaurantRepository;
+import com.backend.supido.userAddress.domain.entity.UserAddress;
+import com.backend.supido.userAddress.repository.UserAddressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -40,7 +49,13 @@ public class OrderServiceImpl implements OrderService {
     private final MenuItemRepository menuItemRepository;
     private final OrderItemRepository orderItemRepository;
     private final CouponRepository couponRepository;
+    private final NotificationService notificationService;
+    private final DeliveryPersonService deliveryPersonService;
+    private final PaymentService paymentService;
+    private final ClaimService claimService;
+    private final UserAddressRepository userAddressRepository;
 
+    @Transactional
     @Override
     public OrderResponse create(CreateOrderRequest request) {
         Restaurant restaurant = restaurantRepository.findById(request.restaurantId())
@@ -50,13 +65,18 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Restaurant is currently closed");
         }
 
-        Order order = OrderMapper.toEntityCreate(request, restaurant);
+        // direccion
+        UserAddress userAddress = userAddressRepository.findByIdAndUserId(request.userAddressId(), request.userId())
+                .orElseThrow(() -> new ResourceNotFoundException("UserAddress not found"));
+
+        Order order = OrderMapper.toEntityCreate(request, restaurant, userAddress);
         order.setStatus(Status.PENDING);
         order.setCreatedAt(LocalDateTime.now());
         order.setSubtotal(BigDecimal.ZERO);
         order.setDiscount(BigDecimal.ZERO);
         order.setShippingCost(BigDecimal.ZERO);
         order.setTotal(BigDecimal.ZERO);
+
         Order saved = orderRepository.save(order);
 
         // Procesar items
@@ -89,8 +109,16 @@ public class OrderServiceImpl implements OrderService {
         saved.setTip(tip);
         saved.setTotal(subtotal.subtract(discount).add(tip));
 
+        Order finalOrder = orderRepository.save(saved);
 
-        return OrderMapper.toDto(orderRepository.save(saved));
+        // crear pago
+        paymentService.createForOrder(finalOrder.getId(), request.paymentMethod(), finalOrder.getTotal());
+
+        // crear notificacion
+        notificationService.sendOrderNotification(finalOrder.getUserId(), finalOrder.getId(), NotificationType.ORDER_RECEIVED,
+                "Your order has been received. The restaurant is processing it.");
+
+        return OrderMapper.toDto(finalOrder);
     }
 
     @Override
@@ -143,6 +171,7 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
+    @Transactional
     @Override
     public void cancel(Long id) {
         Order order = orderRepository.findById(id)
@@ -151,7 +180,15 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Order can only be cancelled when in PENDING status");
         }
         order.setStatus(Status.CANCELLED);
-        orderRepository.save(order);
+
+        Order saved = orderRepository.save(order);
+
+        // actualizar pago
+        paymentService.cancelPayment(saved.getId());
+
+        // crear notificacion
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+                NotificationType.ORDER_CANCELLED, "Your order was cancelled free of charge.");
     }
 
     @Override
@@ -162,7 +199,18 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Order must be in PENDING status to confirm");
         }
         order.setStatus(Status.CONFIRMED);
-        return OrderMapper.toDto(orderRepository.save(order));
+
+        // crear notificacion
+        Order saved = orderRepository.save(order);
+
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(), NotificationType.ORDER_CONFIRMED,
+                "The restaurant accepted your order and will start preparing it soon.");
+
+        List<Long> nearbyDeliveryPersons = deliveryPersonService.findNearbyAvailableUserIds(
+                saved.getRestaurant().getLatitude(), saved.getRestaurant().getLongitude(), 3.0);
+        notificationService.notifyNewOrderToDeliveryPersons(nearbyDeliveryPersons, saved.getId());
+
+        return OrderMapper.toDto(saved);
     }
 
     @Override
@@ -173,7 +221,14 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Order must be in CONFIRMED status to prepare");
         }
         order.setStatus(Status.PREPARING);
-        return OrderMapper.toDto(orderRepository.save(order));
+
+        // crear notificacion
+        Order saved = orderRepository.save(order);
+
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+                NotificationType.ORDER_PREPARING, "Your order is being prepared. Estimated time: 20-30 min.");
+
+        return OrderMapper.toDto(saved);
     }
 
     @Override
@@ -184,7 +239,14 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Order must be in PREPARING status to go on the way");
         }
         order.setStatus(Status.ON_THE_WAY);
-        return OrderMapper.toDto(orderRepository.save(order));
+
+        // crear notificacion
+        Order saved = orderRepository.save(order);
+
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(), NotificationType.ORDER_ON_THE_WAY,
+                "Your order has been picked up by the delivery person and is on its way.");
+
+        return OrderMapper.toDto(saved);
     }
 
     @Override
@@ -196,7 +258,18 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setStatus(Status.DELIVERED);
         order.setDeliveredAt(LocalDateTime.now());
-        return OrderMapper.toDto(orderRepository.save(order));
+        Order saved = orderRepository.save(order);
+
+        // pago (CASH)
+        paymentService.completeCashPayment(saved.getId());
+
+        // crear notificacion
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+                NotificationType.ORDER_DELIVERED, "Your order has been delivered! We hope you enjoy it.");
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+                NotificationType.RATE_YOUR_ORDER, "Rate your experience: restaurant and delivery person.");
+
+        return OrderMapper.toDto(saved);
     }
 
     @Override
@@ -204,7 +277,25 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
         order.setDeliveryPersonId(deliveryPersonId);
-        return OrderMapper.toDto(orderRepository.save(order));
+
+        // crear notificacion
+        Order saved = orderRepository.save(order);
+
+        notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
+                NotificationType.DELIVERY_ASSIGNED, "A delivery person has been assigned to your order. Pickup is coming soon.");
+
+        return OrderMapper.toDto(saved);
+    }
+
+    @Override
+    public OrderReceiptResponse getReceipt(Long id) {
+        OrderResponse order = findById(id);
+
+        return OrderReceiptResponse.builder()
+                .order(order)
+                .payment(paymentService.findByOrderId(id))
+                .claims(claimService.findByOrderId(id))
+                .build();
     }
 
     @Override
