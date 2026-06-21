@@ -1,6 +1,7 @@
 package com.backend.supido.payment.service;
 
 import com.backend.supido.exceptions.ResourceNotFoundException;
+import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.payment.domain.dto.response.PaymentResponse;
 import com.backend.supido.payment.domain.entity.Payment;
 import com.backend.supido.payment.domain.enums.PaymentMethod;
@@ -31,8 +32,8 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentResponse createForOrder(Long orderId, PaymentMethod method, BigDecimal amount) {
-        Payment payment = PaymentMapper.toEntity(orderId, method, PaymentStatus.PENDING, amount);
+    public PaymentResponse createForOrder(Order order, PaymentMethod method, BigDecimal amount) {
+        Payment payment = PaymentMapper.toEntity(order, method, PaymentStatus.PENDING, amount);
 
         PaymentStrategy strategy = strategies.get(method);
         Payment processed = strategy.process(payment);

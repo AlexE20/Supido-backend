@@ -1,5 +1,6 @@
 package com.backend.supido.payment.domain.entity;
 
+import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.payment.domain.enums.PaymentMethod;
 import com.backend.supido.payment.domain.enums.PaymentStatus;
 import jakarta.persistence.*;
@@ -23,8 +24,9 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "order_id", nullable = false, unique = true)
-    private Long orderId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false, unique = true)
+    private Order order;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "method", nullable = false)
