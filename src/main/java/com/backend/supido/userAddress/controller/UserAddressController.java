@@ -15,52 +15,46 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("api/users/{userId}/addresses")
+@RequestMapping("api/users/addresses")
 @RequiredArgsConstructor
 public class UserAddressController {
 
     private final UserAddressServiceImpl userAddressService;
 
     @PostMapping
-    public ResponseEntity<GeneralResponse> create(@PathVariable Long userId,
-                                                  @Valid @RequestBody UserAddressRequest request,
+    public ResponseEntity<GeneralResponse> create(@Valid @RequestBody UserAddressRequest request,
                                                   @AuthenticationPrincipal User user) {
-        return buildResponse("Address created successfully", HttpStatus.CREATED, userAddressService.create(userId, request, user));
+        return buildResponse("Address created successfully", HttpStatus.CREATED, userAddressService.create(request, user));
     }
 
     @GetMapping("/name/{addressName}")
-    public ResponseEntity<GeneralResponse> findByName(@PathVariable Long userId,
-                                                      @PathVariable String addressName,
+    public ResponseEntity<GeneralResponse> findByName(@PathVariable String addressName,
                                                       @AuthenticationPrincipal User user) {
-        return buildResponse("Address retrieved successfully", HttpStatus.OK, userAddressService.findByName(userId, addressName, user));
+        return buildResponse("Address retrieved successfully", HttpStatus.OK, userAddressService.findByName(addressName, user));
     }
 
     @GetMapping("/{addressId}")
-    public ResponseEntity<GeneralResponse> findById(@PathVariable Long userId,
-                                                    @PathVariable Long addressId,
+    public ResponseEntity<GeneralResponse> findById(@PathVariable Long addressId,
                                                     @AuthenticationPrincipal User user) {
-        return buildResponse("Address retrieved successfully", HttpStatus.OK, userAddressService.findById(userId, addressId, user));
+        return buildResponse("Address retrieved successfully", HttpStatus.OK, userAddressService.findById(addressId, user));
     }
 
     @GetMapping
-    public ResponseEntity<GeneralResponse> findAll(@PathVariable Long userId,
-                                                   @AuthenticationPrincipal User user) {
-        return buildResponse("Addresses retrieved successfully", HttpStatus.OK, userAddressService.findAllByUserId(userId, user));
+    public ResponseEntity<GeneralResponse> findAll(@AuthenticationPrincipal User user) {
+        return buildResponse("Addresses retrieved successfully", HttpStatus.OK, userAddressService.findAllByUser(user));
     }
 
     @PutMapping("/{addressId}")
-    public ResponseEntity<GeneralResponse> update(@PathVariable Long userId,
-                                                  @PathVariable Long addressId,
+    public ResponseEntity<GeneralResponse> update(@PathVariable Long addressId,
                                                   @Valid @RequestBody UserAddressRequest request,
                                                   @AuthenticationPrincipal User user) {
-        return buildResponse("Address updated successfully", HttpStatus.OK, userAddressService.update(userId, addressId, request, user));
+        return buildResponse("Address updated successfully", HttpStatus.OK, userAddressService.update(addressId, request, user));
     }
 
     @DeleteMapping("/{addressId}")
-    public ResponseEntity<GeneralResponse> delete(@PathVariable Long userId,
-                                                  @PathVariable Long addressId,
+    public ResponseEntity<GeneralResponse> delete(@PathVariable Long addressId,
                                                   @AuthenticationPrincipal User user) {
-        userAddressService.delete(userId, addressId, user);
+        userAddressService.delete( addressId, user);
         return buildResponse("Address deleted successfully", HttpStatus.OK, null);
     }
 

@@ -24,9 +24,8 @@ public class UserAddressServiceImpl implements UserAddressService {
     private final JwtValidator jwtValidator;
 
     @Override
-    public UserAddressResponse create(Long userId, UserAddressRequest request, User user) {
-        User userReq = findUser(userId);
-        jwtValidator.validate(userReq, user);
+    public UserAddressResponse create(UserAddressRequest request, User user) {
+        User userReq = findUser(user.getId());
         isAddressExisting(request,user);
         UserAddress address = UserAddressMapper.toEntity(request, userReq);
 
@@ -34,37 +33,33 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public UserAddressResponse findByName(Long userId, String addressName, User user) {
-        User userReq = findUser(userId);
-        jwtValidator.validate(userReq, user);
-        UserAddress address = userAddressRepository.findByLabelAndUserId(addressName, userId)
+    public UserAddressResponse findByName(String addressName, User user) {
+        User userReq = findUser(user.getId());
+        UserAddress address = userAddressRepository.findByLabelAndUserId(addressName, userReq.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
         return UserAddressMapper.toDto(address);
     }
 
     @Override
-    public UserAddressResponse findById(Long userId, Long addressId, User user) {
-        User userReq = findUser(userId);
-        jwtValidator.validate(userReq, user);
-        return UserAddressMapper.toDto(findAddress(userId, addressId));
+    public UserAddressResponse findById(Long addressId, User user) {
+        return UserAddressMapper.toDto(findAddress(user.getId(), addressId));
     }
 
     @Override
-    public List<UserAddressResponse> findAllByUserId(Long userId, User user) {
-        User userReq = findUser(userId);
-        jwtValidator.validate(userReq, user);
-        return userAddressRepository.findAllByUserId(userId)
+    public List<UserAddressResponse> findAllByUser(User user) {
+        User userReq = findUser(user.getId());
+        return userAddressRepository.findAllByUserId(userReq.getId())
                 .stream()
                 .map(UserAddressMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public UserAddressResponse update(Long userId, Long addressId, UserAddressRequest request, User user) {
-        User userReq = findUser(userId);
-        jwtValidator.validate(userReq, user);
-        isAddressExisting(request,user);
-        UserAddress address = findAddress(userId, addressId);
+    public UserAddressResponse update( Long addressId, UserAddressRequest request, User user) {
+        UserAddress address= userAddressRepository.findById(addressId).orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+        if(!address.getUser().getId().equals(user.getId())){
+            throw new ResourceNotFoundException("This user cannot modify this address");
+        }
         address.setLabel(request.getLabel());
         address.setStreet(request.getStreet());
         address.setCity(request.getCity());
@@ -74,10 +69,13 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public void delete(Long userId, Long addressId, User user) {
-        User userReq = findUser(userId);
-        jwtValidator.validate(userReq, user);
-        userAddressRepository.delete(findAddress(userId, addressId));
+    public void delete(Long addressId, User user) {
+        UserAddress address = userAddressRepository.findById(addressId).orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+        User userReq = findUser(user.getId());
+        if(!address.getUser().getId().equals(user.getId())){
+            throw new ResourceNotFoundException("This user cannot delete this address");
+        }
+        userAddressRepository.delete(findAddress(user.getId(), addressId));
     }
 
 

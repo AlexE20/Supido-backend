@@ -7,10 +7,10 @@ import com.backend.supido.userAddress.domain.dto.response.UserAddressResponse;
 import java.util.List;
 
 public interface UserAddressService {
-    UserAddressResponse create(Long userId, UserAddressRequest request, User user);
-    UserAddressResponse findById(Long userId, Long addressId, User user);
-    UserAddressResponse findByName(Long userId, String addressName,User user);
-    List<UserAddressResponse> findAllByUserId(Long userId, User user);
-    UserAddressResponse update(Long userId, Long addressId, UserAddressRequest request, User user);
-    void delete(Long userId, Long addressId, User user);
+    UserAddressResponse create(UserAddressRequest request, User user);
+    UserAddressResponse findById(Long addressId, User user);
+    UserAddressResponse findByName(String addressName,User user);
+    List<UserAddressResponse> findAllByUser( User user);
+    UserAddressResponse update(Long addressId, UserAddressRequest request, User user);
+    void delete(Long addressId, User user);
 }
