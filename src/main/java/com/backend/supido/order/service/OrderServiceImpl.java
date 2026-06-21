@@ -120,7 +120,7 @@ public class OrderServiceImpl implements OrderService {
         Order finalOrder = orderRepository.save(saved);
 
         // crear pago
-        paymentService.createForOrder(finalOrder.getId(), request.paymentMethod(), finalOrder.getTotal());
+        paymentService.createForOrder(finalOrder, request.paymentMethod(), finalOrder.getTotal());
 
         // crear notificacion
         notificationService.sendOrderNotification(user.getId(), finalOrder.getId(), NotificationType.ORDER_RECEIVED,
