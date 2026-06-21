@@ -3,10 +3,13 @@ package com.backend.supido.menuItem.controller;
 import com.backend.supido.common.GeneralResponse;
 import com.backend.supido.menuItem.domain.dto.request.MenuItemDTORequest;
 import com.backend.supido.menuItem.service.MenuItemService;
+import com.backend.supido.user.domain.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -31,6 +34,7 @@ public class MenuItemController {
                 menuItemService.findAllByRestaurant(restaurantId, page, size, sortBy, sortOrder));
     }
 
+    @PreAuthorize("hasRole('ROLE_RESTAURANT') and @restaurantSecurity.isOwner(authentication, #restaurantId)")
         @GetMapping("/{id}")
         public ResponseEntity<GeneralResponse> findById(@PathVariable Long restaurantId,
                                                         @PathVariable Long id) {
@@ -39,13 +43,16 @@ public class MenuItemController {
         }
 
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_RESTAURANT') and @restaurantSecurity.isOwner(authentication, #restaurantId)")
     public ResponseEntity<GeneralResponse> create(@PathVariable Long restaurantId,
-                                                  @Valid @RequestBody MenuItemDTORequest request) {
+                                                  @Valid @RequestBody MenuItemDTORequest request,
+                                                    @AuthenticationPrincipal User user) {
         return buildResponse("Menu item has been created", HttpStatus.CREATED,
-                menuItemService.createMenuItem(restaurantId, request));
+                menuItemService.createMenuItem(restaurantId, request,user));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_RESTAURANT') and @restaurantSecurity.isOwner(authentication, #restaurantId)")
     public ResponseEntity<GeneralResponse> update(@PathVariable Long restaurantId,
                                                   @PathVariable Long id,
                                                   @Valid @RequestBody MenuItemDTORequest request) {
@@ -54,12 +61,13 @@ public class MenuItemController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_RESTAURANT') and @restaurantSecurity.isOwner(authentication, #restaurantId)")
     public ResponseEntity<GeneralResponse> delete(@PathVariable Long restaurantId,
                                                   @PathVariable Long id) {
         menuItemService.deleteMenuItem(restaurantId, id);
         return buildResponse("Menu item has been deleted", HttpStatus.OK, null);
     }
-
+    @PreAuthorize("hasRole('ROLE_RESTAURANT') and @restaurantSecurity.isOwner(authentication, #restaurantId)")
     @PatchMapping("/{id}/availability")
     public ResponseEntity<GeneralResponse> toggleAvailability(@PathVariable Long restaurantId,
                                                               @PathVariable Long id) {

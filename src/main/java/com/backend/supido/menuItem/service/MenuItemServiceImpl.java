@@ -9,6 +9,7 @@ import com.backend.supido.restaurant.domain.entity.Restaurant;
 import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.menuItem.repository.MenuItemRepository;
 import com.backend.supido.restaurant.repository.RestaurantRepository;
+import com.backend.supido.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import org.springframework.security.access.AccessDeniedException;
 @Service
 @RequiredArgsConstructor
 public class MenuItemServiceImpl implements MenuItemService {
@@ -24,9 +26,10 @@ public class MenuItemServiceImpl implements MenuItemService {
     private final RestaurantRepository restaurantRepository;
 
     @Override
-    public MenuItemDTOResponse createMenuItem(Long restaurantId, MenuItemDTORequest request) {
+    public MenuItemDTOResponse createMenuItem(Long restaurantId, MenuItemDTORequest request, User user) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id " + restaurantId));
+
 
         if (menuItemRepository.existsByNameAndRestaurantId(request.name(), restaurantId)) {
             throw new IllegalArgumentException("Menu item with name '" + request.name() + "' already exists in this restaurant");
