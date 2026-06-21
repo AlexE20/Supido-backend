@@ -1,6 +1,9 @@
 package com.backend.supido.user.domain.entity;
 
 import com.backend.supido.auth.domain.entity.Role;
+import com.backend.supido.claim.domain.entity.Claim;
+import com.backend.supido.notification.domain.entities.Notification;
+import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.userAddress.domain.entity.UserAddress;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -47,8 +50,18 @@ public class User implements UserDetails {
     private Role role;
 
 
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserAddress> addresses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Order> orders = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Claim> claims = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

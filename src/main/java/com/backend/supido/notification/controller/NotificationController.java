@@ -2,9 +2,11 @@ package com.backend.supido.notification.controller;
 
 import com.backend.supido.common.GeneralResponse;
 import com.backend.supido.notification.service.NotificationService;
+import com.backend.supido.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -17,27 +19,28 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<GeneralResponse> findByUserId(@PathVariable Long userId) {
+
+    @GetMapping
+    public ResponseEntity<GeneralResponse> findByUserId(@AuthenticationPrincipal User user) {
         return buildResponse("Notification retrieved", HttpStatus.OK,
-                notificationService.findByUserId(userId));
+                notificationService.findByUserId(user));
     }
 
-    @GetMapping("/user/{userId}/unread")
-    public ResponseEntity<GeneralResponse> findUnread(@PathVariable Long userId) {
+    @GetMapping("/unread")
+    public ResponseEntity<GeneralResponse> findUnread(@AuthenticationPrincipal User user) {
         return buildResponse("Unread notifications retrieved", HttpStatus.OK,
-                notificationService.findUnreadByUserId(userId));
+                notificationService.findUnreadByUserId(user));
     }
 
     @PatchMapping("/{id}/read")
-    public ResponseEntity<GeneralResponse> markAsRead(@PathVariable Long id) {
+    public ResponseEntity<GeneralResponse> markAsRead(@PathVariable Long id, @AuthenticationPrincipal User user) {
         return buildResponse("Notification marked as read", HttpStatus.OK,
-                notificationService.markAsRead(id));
+                notificationService.markAsRead(id,user));
     }
 
-    @PatchMapping("/user/{userId}/read-all")
-    public ResponseEntity<GeneralResponse> markAllAsRead(@PathVariable Long userId) {
-        notificationService.markAllAsRead(userId);
+    @PatchMapping("/read-all")
+    public ResponseEntity<GeneralResponse> markAllAsRead(@AuthenticationPrincipal User user) {
+        notificationService.markAllAsRead(user);
         return buildResponse("All notifications marked as read", HttpStatus.OK, null);
     }
 

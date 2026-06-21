@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserDetailsService {
 
     public UserResponse getUserById(Long id){
        User user= userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));;
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
         return userMapper.toUserDto(user);
     }
 

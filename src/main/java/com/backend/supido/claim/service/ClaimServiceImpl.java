@@ -36,7 +36,7 @@ public class ClaimServiceImpl implements ClaimService {
     public ClaimResponse create(CreateClaimRequest request, User user) {
         Order order = orderRepository.findById(request.orderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + request.orderId()));
-
+        
         if (order.getStatus() != Status.DELIVERED) {
             throw new IllegalArgumentException("Claims can only be filed for delivered orders");
         }
