@@ -25,6 +25,8 @@ import com.backend.supido.orderItem.repository.OrderItemRepository;
 import com.backend.supido.payment.service.PaymentService;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
 import com.backend.supido.restaurant.repository.RestaurantRepository;
+import com.backend.supido.userAddress.domain.entity.UserAddress;
+import com.backend.supido.userAddress.repository.UserAddressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,6 +53,7 @@ public class OrderServiceImpl implements OrderService {
     private final DeliveryPersonService deliveryPersonService;
     private final PaymentService paymentService;
     private final ClaimService claimService;
+    private final UserAddressRepository userAddressRepository;
 
     @Transactional
     @Override
@@ -62,13 +65,18 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Restaurant is currently closed");
         }
 
-        Order order = OrderMapper.toEntityCreate(request, restaurant);
+        // direccion
+        UserAddress userAddress = userAddressRepository.findByIdAndUserId(request.userAddressId(), request.userId())
+                .orElseThrow(() -> new ResourceNotFoundException("UserAddress not found"));
+
+        Order order = OrderMapper.toEntityCreate(request, restaurant, userAddress);
         order.setStatus(Status.PENDING);
         order.setCreatedAt(LocalDateTime.now());
         order.setSubtotal(BigDecimal.ZERO);
         order.setDiscount(BigDecimal.ZERO);
         order.setShippingCost(BigDecimal.ZERO);
         order.setTotal(BigDecimal.ZERO);
+
         Order saved = orderRepository.save(order);
 
         // Procesar items
@@ -108,7 +116,7 @@ public class OrderServiceImpl implements OrderService {
 
         // crear notificacion
         notificationService.sendOrderNotification(finalOrder.getUserId(), finalOrder.getId(), NotificationType.ORDER_RECEIVED,
-                "Tu pedido fue recibido. El restaurante lo esta procesando.");
+                "Your order has been received. The restaurant is processing it.");
 
         return OrderMapper.toDto(finalOrder);
     }
@@ -180,7 +188,7 @@ public class OrderServiceImpl implements OrderService {
 
         // crear notificacion
         notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
-                NotificationType.ORDER_CANCELLED, "Tu pedido fue cancelado sin cargo.");
+                NotificationType.ORDER_CANCELLED, "Your order was cancelled free of charge.");
     }
 
     @Override
@@ -196,7 +204,7 @@ public class OrderServiceImpl implements OrderService {
         Order saved = orderRepository.save(order);
 
         notificationService.sendOrderNotification(saved.getUserId(), saved.getId(), NotificationType.ORDER_CONFIRMED,
-                "El restaurante acepto tu pedido y pronto empezara a prepararlo");
+                "The restaurant accepted your order and will start preparing it soon.");
 
         List<Long> nearbyDeliveryPersons = deliveryPersonService.findNearbyAvailableUserIds(
                 saved.getRestaurant().getLatitude(), saved.getRestaurant().getLongitude(), 3.0);
@@ -218,7 +226,7 @@ public class OrderServiceImpl implements OrderService {
         Order saved = orderRepository.save(order);
 
         notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
-                NotificationType.ORDER_PREPARING, "Tu pedido está siendo preparado. Tiempo estimado: 20-30 min.");
+                NotificationType.ORDER_PREPARING, "Your order is being prepared. Estimated time: 20-30 min.");
 
         return OrderMapper.toDto(saved);
     }
@@ -236,7 +244,7 @@ public class OrderServiceImpl implements OrderService {
         Order saved = orderRepository.save(order);
 
         notificationService.sendOrderNotification(saved.getUserId(), saved.getId(), NotificationType.ORDER_ON_THE_WAY,
-                "Tu pedido fue recogido por nuestro repartidor y esta en camino a tu direccion.");
+                "Your order has been picked up by the delivery person and is on its way.");
 
         return OrderMapper.toDto(saved);
     }
@@ -257,9 +265,9 @@ public class OrderServiceImpl implements OrderService {
 
         // crear notificacion
         notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
-                NotificationType.ORDER_DELIVERED, "¡Tu pedido fue entregado! Esperamos que lo disfrutes.");
+                NotificationType.ORDER_DELIVERED, "Your order has been delivered! We hope you enjoy it.");
         notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
-                NotificationType.RATE_YOUR_ORDER, "Califica tu experiencia: restaurante y repartidor.");
+                NotificationType.RATE_YOUR_ORDER, "Rate your experience: restaurant and delivery person.");
 
         return OrderMapper.toDto(saved);
     }
@@ -274,7 +282,7 @@ public class OrderServiceImpl implements OrderService {
         Order saved = orderRepository.save(order);
 
         notificationService.sendOrderNotification(saved.getUserId(), saved.getId(),
-                NotificationType.DELIVERY_ASSIGNED, "Se asignó un repartidor a tu pedido. Pronto saldrá a buscarlo.");
+                NotificationType.DELIVERY_ASSIGNED, "A delivery person has been assigned to your order. Pickup is coming soon.");
 
         return OrderMapper.toDto(saved);
     }
