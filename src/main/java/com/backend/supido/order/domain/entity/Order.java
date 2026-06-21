@@ -3,6 +3,7 @@ package com.backend.supido.order.domain.entity;
 import com.backend.supido.order.common.enums.Status;
 import com.backend.supido.orderItem.domain.entity.OrderItem;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
+import com.backend.supido.user.domain.entity.User;
 import com.backend.supido.userAddress.domain.entity.UserAddress;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,8 +26,9 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "userId")
-    private long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="user_id", nullable = false)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id")

@@ -59,7 +59,7 @@ public class NotificationServiceImpl implements NotificationService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order with id: " + " not found"));
 
-        sendOrderNotification(order.getUserId(), orderId, NotificationType.DELIVERY_NEARBY,
+        sendOrderNotification(order.getUser().getId(), orderId, NotificationType.DELIVERY_NEARBY,
                 "Your delivery person is nearby. Get ready to receive your order");
     }
 
