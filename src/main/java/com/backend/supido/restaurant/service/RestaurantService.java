@@ -10,8 +10,8 @@ import java.util.List;
 public interface RestaurantService {
     RestaurantDTOResponse createRestaurant(RestaurantDTORequest request, User user);
     RestaurantDTOResponse findRestaurantById(Long id);
-    RestaurantDTOResponse updateRestaurant(Long id, RestaurantDTORequest request);
-    void deleteRestaurant(Long id);
+    RestaurantDTOResponse updateRestaurant(Long id, RestaurantDTORequest request,User user);
+    void deleteRestaurant(Long id,  User user);
     List<RestaurantDTOResponse> findByCategory(String category);
     List<RestaurantDTOResponse> findByName(String name);
     PageableResponse<RestaurantDTOResponse> findAllRestaurants(int page, int size, String sortBy, String sortOrder);

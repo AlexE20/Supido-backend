@@ -1,6 +1,7 @@
 package com.backend.supido.notification.domain.entities;
 
 import com.backend.supido.notification.domain.enums.NotificationType;
+import com.backend.supido.user.domain.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,8 +22,10 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
 
     @Column(name = "order_id")
     private Long orderId;
