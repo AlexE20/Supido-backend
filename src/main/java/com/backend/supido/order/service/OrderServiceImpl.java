@@ -150,10 +150,6 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse update(Long id, UpdateOrderRequest request,User user) {
         Order existing = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-        if(!existing.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("This user has no permission to update this order");
-        }
-
         Order updated = OrderMapper.toEntityUpdate(request);
         updated.setId(existing.getId());
         updated.setUser(existing.getUser());
@@ -314,10 +310,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderReceiptResponse getReceipt(Long id,User user) {
         Order existingOrder= orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-        
-        if(!existingOrder.getUser().getId().equals(user.getId())){
-              throw new IllegalArgumentException("You do not have permission to do this action.");
-        }
+
         OrderResponse order = OrderMapper.toDto(existingOrder);
 
 

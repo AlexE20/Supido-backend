@@ -4,6 +4,7 @@ import com.backend.supido.common.GeneralResponse;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
 import com.backend.supido.order.service.OrderService;
+import com.backend.supido.security.order.OrderSecurity;
 import com.backend.supido.user.domain.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,24 +40,27 @@ public class OrderController {
         return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findAll());
     }
 
-    @PutMapping("/{id}") //Agregar userID
+    @PutMapping("/{id}")
+    @PreAuthorize(value = "@orderSecurity.isOwner(authentication, #id)")
     public ResponseEntity<GeneralResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateOrderRequest request,
                                                   @AuthenticationPrincipal User user) {
         return buildResponse("Order updated successfully", HttpStatus.OK, orderService.update(id, request, user));
     }
 
     @GetMapping("/{id}/receipt")
+    @PreAuthorize(value = "@orderSecurity.isOwner(authentication, #id)")
     public ResponseEntity<GeneralResponse> getReceipt(@PathVariable Long id,@AuthenticationPrincipal User user) {
         return buildResponse("Receipt retrieved successfully", HttpStatus.OK, orderService.getReceipt(id,user));
     }
 
     @PatchMapping("/{id}/cancel")
+    @PreAuthorize(value = "@orderSecurity.isOwner(authentication, #id) or hasRole('ROLE_RESTAURANT')")
     public ResponseEntity<GeneralResponse> cancel(@PathVariable Long id) {
         orderService.cancel(id);
         return buildResponse("Order cancelled successfully", HttpStatus.OK, null);
     }
 
-    @PatchMapping("/{id}/confirm")
+    /*@PatchMapping("/{id}/confirm")
     public ResponseEntity<GeneralResponse> confirm(@PathVariable Long id) {
         return buildResponse("Order confirmed successfully", HttpStatus.OK, orderService.confirm(id));
     }
@@ -76,26 +80,29 @@ public class OrderController {
         return buildResponse("Order delivered successfully", HttpStatus.OK, orderService.deliver(id));
     }
 
+
     @PatchMapping("/{id}/assign-delivery-person")
     public ResponseEntity<GeneralResponse> assignDeliveryPerson(@PathVariable Long id, @RequestParam Long deliveryPersonId) {
         return buildResponse("Delivery person assigned successfully", HttpStatus.OK, orderService.assignDeliveryPerson(id, deliveryPersonId));
     }
+ */
 
-    @PatchMapping("/{id}/confirm-cash-payment")
+    @PatchMapping("/{id}/confirm-cash-payment") 
+    @PreAuthorize(value = "@orderSecurity.isOwner(authentication, #id)")
     public ResponseEntity<GeneralResponse> confirmCashPayment(@PathVariable Long id, @RequestParam Long deliveryPersonId) {
         orderService.confirmCashPayment(id, deliveryPersonId);
         return buildResponse("Cash payment successfully confirmed", HttpStatus.OK, null);
     }
 
     // Consultas por relación
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user/{userId}") //Cambiar Jp
     public ResponseEntity<GeneralResponse> findByUserId(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByUserId(userId, page, size));
     }
-
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
     @GetMapping("/restaurant/{restaurantId}")
     public ResponseEntity<GeneralResponse> findByRestaurantId(
             @PathVariable Long restaurantId,
@@ -104,7 +111,7 @@ public class OrderController {
         return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByRestaurantId(restaurantId, page, size));
     }
 
-    @GetMapping("/delivery-person/{deliveryPersonId}")
+    @GetMapping("/delivery-person/{deliveryPersonId}") //PABLO HACE  ESTO YAAAAA
     public ResponseEntity<GeneralResponse> findByDeliveryPersonId(
             @PathVariable Long deliveryPersonId,
             @RequestParam(defaultValue = "0") int page,
