@@ -41,11 +41,11 @@ public class ClaimServiceImpl implements ClaimService {
             throw new IllegalArgumentException("Claims can only be filed for delivered orders");
         }
 
-        if (order.getUserId() != user.getId()) {
+        if (!order.getUser().getId().equals(user.getId())) {
             throw new AccessDeniedException("You can only file claims for your own orders");
         }
 
-        Claim claim = ClaimMapper.toEntity(request, order);
+        Claim claim = ClaimMapper.toEntity(request, order, user);
         return ClaimMapper.toDto(claimRepository.save(claim));
     }
 
@@ -64,7 +64,7 @@ public class ClaimServiceImpl implements ClaimService {
 
         paymentService.markRefunded(saved.getOrder().getId());
 
-        notificationService.sendOrderNotification(saved.getUserId(), saved.getOrder().getId(),
+        notificationService.sendOrderNotification(saved.getUser().getId(), saved.getOrder().getId(),
                 NotificationType.CLAIM_APPROVED, "Your claim has been approved. A refund will be processed.");
 
         return ClaimMapper.toDto(saved);
@@ -82,7 +82,7 @@ public class ClaimServiceImpl implements ClaimService {
         claim.setStatus(ClaimStatus.REJECTED);
         Claim saved = claimRepository.save(claim);
 
-        notificationService.sendOrderNotification(saved.getUserId(), saved.getOrder().getId(),
+        notificationService.sendOrderNotification(saved.getUser().getId(), saved.getOrder().getId(),
                 NotificationType.CLAIM_REJECTED, "Your claim has been reviewed and was not approved.");
 
         return ClaimMapper.toDto(saved);
@@ -92,7 +92,7 @@ public class ClaimServiceImpl implements ClaimService {
     public ClaimResponse findById(Long id, User user) {
         Claim claim = claimRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Claim not found with id: " + id));
-        if (!claim.getUserId().equals(user.getId())) {
+        if (!claim.getUser().getId().equals(user.getId())) {
             throw new AccessDeniedException("You do not have permission to access this claim");
         }
         return ClaimMapper.toDto(claim);
@@ -102,17 +102,17 @@ public class ClaimServiceImpl implements ClaimService {
     public List<ClaimResponse> findByOrderId(Long orderId, User user) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
-        if (order.getUserId() != user.getId()) {
+        if (!order.getUser().getId().equals(user.getId())) {
             throw new AccessDeniedException("You do not have permission to access claims for this order");
         }
-        return claimRepository.findByOrderId(orderId).stream()
+        return claimRepository.findByOrder_Id(orderId).stream()
                 .map(ClaimMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<ClaimResponse> findByUserId(Long userId) {
-        return claimRepository.findByUserId(userId).stream()
+        return claimRepository.findByUser_Id(userId).stream()
                 .map(ClaimMapper::toDto)
                 .collect(Collectors.toList());
     }
