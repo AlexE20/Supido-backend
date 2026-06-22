@@ -35,11 +35,6 @@ public class OrderTrackingController {
         return buildResponse("Order tracking retrieved successfully", HttpStatus.OK, orderTrackingService.findByOrderId(orderId));
     }
 
-    @GetMapping("/delivery-person/{deliveryPersonId}")
-    public ResponseEntity<GeneralResponse> findByDeliveryPersonId(@PathVariable Long deliveryPersonId) {
-        return buildResponse("Order trackings retrieved successfully", HttpStatus.OK, orderTrackingService.findByDeliveryPersonId(deliveryPersonId));
-    }
-
     @GetMapping
     public ResponseEntity<GeneralResponse> findAll() {
         return buildResponse("Order trackings retrieved successfully", HttpStatus.OK, orderTrackingService.findAll());

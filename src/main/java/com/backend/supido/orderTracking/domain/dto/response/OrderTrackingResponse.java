@@ -8,11 +8,8 @@ import java.time.LocalDateTime;
 public record OrderTrackingResponse(
         Long id,
         Long orderId,
-        Long deliveryPersonId,
         String status,
-        Double currentLatitude,
-        Double currentLongitude,
-        LocalDateTime estimatedDeliveryTime,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Double longitude,
+        Double latitude,
+        LocalDateTime recordedAt
 ) {}

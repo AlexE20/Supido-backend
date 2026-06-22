@@ -1,5 +1,6 @@
 package com.backend.supido.orderTracking.mapper;
 
+import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.orderTracking.domain.dto.request.CreateOrderTrackingRequest;
 import com.backend.supido.orderTracking.domain.dto.response.OrderTrackingResponse;
 import com.backend.supido.orderTracking.domain.entity.OrderTracking;
@@ -8,30 +9,24 @@ import java.time.LocalDateTime;
 
 public class OrderTrackingMapper {
 
-    public static OrderTracking toEntity(CreateOrderTrackingRequest request) {
+    public static OrderTracking toEntity(CreateOrderTrackingRequest request, Order order) {
         return OrderTracking.builder()
-                .orderId(request.orderId())
-                .deliveryPersonId(request.deliveryPersonId())
+                .order(order)
                 .status(request.status() != null ? request.status() : "PENDING")
-                .currentLatitude(request.currentLatitude())
-                .currentLongitude(request.currentLongitude())
-                .estimatedDeliveryTime(request.estimatedDeliveryTime())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .longitude(request.longitude())
+                .latitude(request.latitude())
+                .recordedAt(request.recordedAt() != null ? request.recordedAt() : LocalDateTime.now())
                 .build();
     }
 
     public static OrderTrackingResponse toDto(OrderTracking entity) {
         return OrderTrackingResponse.builder()
                 .id(entity.getId())
-                .orderId(entity.getOrderId())
-                .deliveryPersonId(entity.getDeliveryPersonId())
+                .orderId(entity.getOrder().getId())
                 .status(entity.getStatus())
-                .currentLatitude(entity.getCurrentLatitude())
-                .currentLongitude(entity.getCurrentLongitude())
-                .estimatedDeliveryTime(entity.getEstimatedDeliveryTime())
-                .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
+                .longitude(entity.getLongitude())
+                .latitude(entity.getLatitude())
+                .recordedAt(entity.getRecordedAt())
                 .build();
     }
 }

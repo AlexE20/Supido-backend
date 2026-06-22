@@ -12,12 +12,10 @@ public record CreateOrderTrackingRequest(
         @Positive(message = "orderId must be a positive number")
         Long orderId,
 
-        Long deliveryPersonId,
-
         String status,
 
-        Double currentLatitude,
-        Double currentLongitude,
+        Double longitude,
+        Double latitude,
 
-        LocalDateTime estimatedDeliveryTime
+        LocalDateTime recordedAt
 ) {}

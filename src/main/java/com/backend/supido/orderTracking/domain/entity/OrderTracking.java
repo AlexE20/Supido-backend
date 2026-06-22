@@ -1,5 +1,6 @@
 package com.backend.supido.orderTracking.domain.entity;
 
+import com.backend.supido.order.domain.entity.Order;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,27 +21,19 @@ public class OrderTracking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "orderId", unique = true, nullable = false)
-    private Long orderId;
-
-    @Column(name = "deliveryPersonId")
-    private Long deliveryPersonId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
     @Column(name = "status")
     private String status;
 
-    @Column(name = "currentLatitude")
-    private Double currentLatitude;
+    @Column(name = "longitude")
+    private Double longitude;
 
-    @Column(name = "currentLongitude")
-    private Double currentLongitude;
+    @Column(name = "latitude")
+    private Double latitude;
 
-    @Column(name = "estimatedDeliveryTime")
-    private LocalDateTime estimatedDeliveryTime;
-
-    @Column(name = "createdAt")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updatedAt")
-    private LocalDateTime updatedAt;
+    @Column(name = "recorded_at")
+    private LocalDateTime recordedAt;
 }
