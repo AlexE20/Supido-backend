@@ -1,4 +1,4 @@
-package com.backend.supido.common.utils;
+package com.backend.supido.restaurant.domain.dto;
 
 import lombok.Builder;
 

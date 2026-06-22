@@ -1,6 +1,6 @@
 package com.backend.supido.rating.common.mapper;
 
-import com.backend.supido.common.utils.RestaurantSummaryDTO;
+import com.backend.supido.restaurant.domain.dto.RestaurantSummaryDTO;
 import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.rating.domain.dto.request.RatingDTORequest;
 import com.backend.supido.rating.domain.dto.response.RatingDTOResponse;
