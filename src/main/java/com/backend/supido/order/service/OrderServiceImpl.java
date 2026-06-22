@@ -324,7 +324,7 @@ public class OrderServiceImpl implements OrderService {
 
         return OrderReceiptResponse.builder()
                 .order(order)
-                .payment(paymentService.findByOrderId(id))
+                .payment(paymentService.findByOrderId(id, user))
                 .claims(claimService.findByOrderId(id, user))
                 .build();
     }
