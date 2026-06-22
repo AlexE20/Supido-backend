@@ -17,7 +17,7 @@ public record OrderResponse(
         RestaurantSummaryDTO restaurant,
         Long deliveryPersonId,
         Long cuponId,
-        Status status, //cambiar a enum
+        Status status,
         String deliveryAddress,
         BigDecimal subtotal,
         BigDecimal shippingCost,
