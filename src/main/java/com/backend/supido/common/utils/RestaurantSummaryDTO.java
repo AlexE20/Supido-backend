@@ -1,4 +1,4 @@
-package com.backend.supido.order.domain.dto;
+package com.backend.supido.common.utils;
 
 import lombok.Builder;
 
