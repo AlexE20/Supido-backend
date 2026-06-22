@@ -5,6 +5,7 @@ import com.backend.supido.common.utils.JwtValidator;
 import com.backend.supido.common.utils.RestaurantUtils;
 import com.backend.supido.coupon.domain.entity.Coupon;
 import com.backend.supido.coupon.repository.CouponRepository;
+import com.backend.supido.deliveryPerson.domain.dto.response.DeliveryPersonResponse;
 import com.backend.supido.deliveryPerson.service.DeliveryPersonService;
 import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.menuItem.domain.entity.MenuItem;
@@ -344,7 +345,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public PageableResponse<OrderResponse> findByDeliveryPersonId(Long deliveryPersonId, int page, int size) {
+    public PageableResponse<OrderResponse> findByDeliveryPersonId(Long deliveryPersonId, int page, int size, User user) {
+        if ("ROLE_DRIVER".equals(user.getRole().getName())) {
+            DeliveryPersonResponse driverProfile = deliveryPersonService.findByUserId(user.getId());
+            if (!driverProfile.id().equals(deliveryPersonId)) {
+                throw new IllegalArgumentException("You are not authorized to view orders from another driver");
+            }
+        }
         Page<Order> orderPage = orderRepository.findByDeliveryPersonId(deliveryPersonId, PageRequest.of(page, size));
         return buildPageableResponse(orderPage);
     }

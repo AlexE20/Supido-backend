@@ -33,6 +33,7 @@ public class OrderController {
     public ResponseEntity<GeneralResponse> findById(@PathVariable Long id) {
         return buildResponse("Order retrieved successfully", HttpStatus.OK, orderService.findById(id));
     }
+
     @PreAuthorize("hasRole('SUPER')")
     @GetMapping
     public ResponseEntity<GeneralResponse> findAll() {
@@ -108,8 +109,9 @@ public class OrderController {
     public ResponseEntity<GeneralResponse> findByDeliveryPersonId(
             @PathVariable Long deliveryPersonId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByDeliveryPersonId(deliveryPersonId, page, size));
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal User user) {
+        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByDeliveryPersonId(deliveryPersonId, page, size, user));
     }
 
     public ResponseEntity<GeneralResponse> buildResponse(String message, HttpStatus status, Object data){

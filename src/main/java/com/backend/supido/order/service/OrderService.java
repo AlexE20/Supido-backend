@@ -36,5 +36,5 @@ public interface OrderService {
     // Consultas por relación
     PageableResponse<OrderResponse> findByUserId(Long userId, int page, int size);
     PageableResponse<OrderResponse> findByRestaurantId(Long restaurantId, int page, int size);
-    PageableResponse<OrderResponse> findByDeliveryPersonId(Long deliveryPersonId, int page, int size);
+    PageableResponse<OrderResponse> findByDeliveryPersonId(Long deliveryPersonId, int page, int size, User user);
 }
