@@ -52,7 +52,7 @@ public class RestaurantController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('RESTAURANT')")
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
     public ResponseEntity<GeneralResponse> create(@Valid @RequestBody RestaurantDTORequest request,@AuthenticationPrincipal User user) {
         return buildResponse("Restaurant has been created", HttpStatus.CREATED,
                 restaurantService.createRestaurant(request,user));
