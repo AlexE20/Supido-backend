@@ -88,6 +88,11 @@ public class OrderController {
         return buildResponse("Cash payment successfully confirmed", HttpStatus.OK, null);
     }
 
+    @GetMapping("/{id}/order-stats")
+    public ResponseEntity<GeneralResponse> getOrderStats(@PathVariable Long id) {
+        return buildResponse("Order stats retrieved successfully", HttpStatus.OK, orderService.getOrderStats(id));
+    }
+
     // Consultas por relación
     @GetMapping("/user/{userId}")
     public ResponseEntity<GeneralResponse> findByUserId(
@@ -112,6 +117,16 @@ public class OrderController {
             @RequestParam(defaultValue = "10") int size,
             @AuthenticationPrincipal User user) {
         return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByDeliveryPersonId(deliveryPersonId, page, size, user));
+    }
+
+    @GetMapping("/delivery-person/{deliveryPersonId}/delivered")
+    public ResponseEntity<GeneralResponse> findDeliveredByDeliveryPersonId(
+            @PathVariable Long deliveryPersonId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal User user) {
+        return buildResponse("Delivered orders retrieved successfully", HttpStatus.OK,
+                orderService.findDeliveredOrdersByDeliveryPersonId(deliveryPersonId, page, size, user));
     }
 
     public ResponseEntity<GeneralResponse> buildResponse(String message, HttpStatus status, Object data){

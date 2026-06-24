@@ -6,7 +6,11 @@ import com.backend.supido.common.utils.RestaurantUtils;
 import com.backend.supido.coupon.domain.entity.Coupon;
 import com.backend.supido.coupon.repository.CouponRepository;
 import com.backend.supido.deliveryPerson.domain.dto.response.DeliveryPersonResponse;
+import com.backend.supido.deliveryPerson.domain.entity.DeliveryPerson;
+import com.backend.supido.deliveryPerson.repository.DeliveryPersonRepository;
 import com.backend.supido.deliveryPerson.service.DeliveryPersonService;
+import com.backend.supido.googleMaps.dto.RouteResult;
+import com.backend.supido.googleMaps.service.GoogleMapsService;
 import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.menuItem.domain.entity.MenuItem;
 import com.backend.supido.menuItem.repository.MenuItemRepository;
@@ -19,6 +23,7 @@ import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
 import com.backend.supido.order.domain.dto.response.OrderReceiptResponse;
 import com.backend.supido.order.domain.dto.response.OrderResponse;
+import com.backend.supido.order.domain.dto.response.OrderStatsResponse;
 import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.order.repository.OrderRepository;
 import com.backend.supido.orderItem.domain.entity.OrderItem;
@@ -56,10 +61,12 @@ public class OrderServiceImpl implements OrderService {
     private final CouponRepository couponRepository;
     private final NotificationService notificationService;
     private final DeliveryPersonService deliveryPersonService;
+    private final DeliveryPersonRepository deliveryPersonRepository;
     private final PaymentService paymentService;
     private final ClaimService claimService;
     private final UserAddressRepository userAddressRepository;
     private final UserRepository userRepository;
+    private final GoogleMapsService googleMapsService;
 
     @Transactional
     @Override //Al crear la orden no te sale el arreglo de items
@@ -162,6 +169,14 @@ public class OrderServiceImpl implements OrderService {
         updated.setSubtotal(existing.getSubtotal());
         updated.setShippingCost(existing.getShippingCost());
         updated.setCreatedAt(existing.getCreatedAt());
+
+        if (request.deliveryPersonId() != null) {
+            DeliveryPerson dp = deliveryPersonRepository.findById(request.deliveryPersonId())
+                    .orElseThrow(() -> new ResourceNotFoundException("DeliveryPerson not found with id: " + request.deliveryPersonId()));
+            updated.setDeliveryPerson(dp);
+        } else {
+            updated.setDeliveryPerson(existing.getDeliveryPerson());
+        }
 
         // cupón antes del cálculo
         if (request.couponId() != null) {
@@ -288,7 +303,9 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse assignDeliveryPerson(Long id, Long deliveryPersonId) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-        order.setDeliveryPersonId(deliveryPersonId);
+        DeliveryPerson dp = deliveryPersonRepository.findById(deliveryPersonId)
+                .orElseThrow(() -> new ResourceNotFoundException("DeliveryPerson not found with id: " + deliveryPersonId));
+        order.setDeliveryPerson(dp);
 
         // crear notificacion
         Order saved = orderRepository.save(order);
@@ -304,7 +321,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
 
-        if (!order.getDeliveryPersonId().equals(deliveryPersonId)) {
+        if (order.getDeliveryPerson() == null || !order.getDeliveryPerson().getId().equals(deliveryPersonId)) {
             throw new IllegalArgumentException("This delivery person does not have permission to confirm a cash payment");
         }
 
@@ -352,9 +369,63 @@ public class OrderServiceImpl implements OrderService {
                 throw new IllegalArgumentException("You are not authorized to view orders from another driver");
             }
         }
-        Page<Order> orderPage = orderRepository.findByDeliveryPersonId(deliveryPersonId, PageRequest.of(page, size));
+        Page<Order> orderPage = orderRepository.findByDeliveryPerson_Id(deliveryPersonId, PageRequest.of(page, size));
         return buildPageableResponse(orderPage);
     }
+    @Transactional(readOnly = true)
+    @Override
+    public PageableResponse<OrderResponse> findDeliveredOrdersByDeliveryPersonId(Long deliveryPersonId, int page, int size, User user) {
+        if ("ROLE_DRIVER".equals(user.getRole().getName())) {
+            DeliveryPersonResponse driverProfile = deliveryPersonService.findByUserId(user.getId());
+            if (!driverProfile.id().equals(deliveryPersonId)) {
+                throw new IllegalArgumentException("You are not authorized to view orders from another driver");
+            }
+        }
+        Page<Order> orderPage = orderRepository.findByDeliveryPerson_IdAndStatus(
+                deliveryPersonId, Status.DELIVERED, PageRequest.of(page, size));
+        return buildPageableResponse(orderPage);
+    }
+
+    @Transactional
+    @Override
+    public OrderStatsResponse getOrderStats(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+
+        if (!order.getStatus().equals(Status.CONFIRMED)) {
+            throw new IllegalArgumentException("Order stats are only available when the order is in CONFIRMED status");
+        }
+        if (order.getDeliveryPerson() == null) {
+            throw new IllegalArgumentException("No delivery person assigned to this order yet");
+        }
+
+        DeliveryPersonResponse driver = deliveryPersonService.findById(order.getDeliveryPerson().getId());
+        Restaurant restaurant = order.getRestaurant();
+        UserAddress userAddress = order.getUserAddress();
+
+        RouteResult route = googleMapsService.computeRoute(
+                driver.latitude(), driver.longitude(),
+                restaurant.getLatitude(), restaurant.getLongitude(),
+                userAddress.getLatitude(), userAddress.getLongitude()
+        );
+
+        double distanceKm = route.distanceMeters() / 1000.0;
+        BigDecimal shippingCost = BigDecimal.valueOf(distanceKm).setScale(2, RoundingMode.HALF_UP);
+
+        order.setShippingCost(shippingCost);
+        BigDecimal subtotal = order.getSubtotal() != null ? order.getSubtotal() : BigDecimal.ZERO;
+        BigDecimal discount = order.getDiscount() != null ? order.getDiscount() : BigDecimal.ZERO;
+        BigDecimal tip = order.getTip() != null ? order.getTip() : BigDecimal.ZERO;
+        order.setTotal(subtotal.subtract(discount).add(tip).add(shippingCost));
+        orderRepository.save(order);
+
+        return OrderStatsResponse.builder()
+                .distanceKm(Math.round(distanceKm * 100.0) / 100.0)
+                .durationSeconds(route.durationSeconds())
+                .shippingCost(shippingCost)
+                .build();
+    }
+
     //possible util
     private BigDecimal applyCoupon(Long couponId, BigDecimal subtotal) {
         Coupon coupon = couponRepository.findById(couponId)

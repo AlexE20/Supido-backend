@@ -1,14 +1,14 @@
 package com.backend.supido.deliveryPerson.domain.entity;
 
-import com.backend.supido.restaurant.domain.entity.Restaurant;
+import com.backend.supido.order.domain.entity.Order;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 @Entity
 @Table(name = "delivery_person")
 @Data
@@ -37,6 +37,9 @@ public class DeliveryPerson {
 
     @Column(name = "lastLocationAt")
     private LocalDateTime lastLocationAt;
+
+    @OneToMany(mappedBy = "deliveryPerson", fetch = FetchType.LAZY)
+    private List<Order> orders;
 
 }
 

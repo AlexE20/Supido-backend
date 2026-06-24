@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderTracking {
+public class
+OrderTracking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
