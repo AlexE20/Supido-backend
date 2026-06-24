@@ -299,15 +299,35 @@ public class OrderServiceImpl implements OrderService {
         return OrderMapper.toDto(saved);
     }
 
+    @Transactional
     @Override
     public OrderResponse assignDeliveryPerson(Long id, Long deliveryPersonId) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+
+        if (!order.getStatus().equals(Status.CONFIRMED)) {
+            throw new IllegalArgumentException("A delivery person can only be assigned when the order is CONFIRMED");
+        }
+
         DeliveryPerson dp = deliveryPersonRepository.findById(deliveryPersonId)
                 .orElseThrow(() -> new ResourceNotFoundException("DeliveryPerson not found with id: " + deliveryPersonId));
         order.setDeliveryPerson(dp);
 
-        // crear notificacion
+        RouteResult route = googleMapsService.computeRoute(
+                dp.getLatitude(), dp.getLongitude(),
+                order.getRestaurant().getLatitude(), order.getRestaurant().getLongitude(),
+                order.getUserAddress().getLatitude(), order.getUserAddress().getLongitude()
+        );
+
+        double distanceKm = route.distanceMeters() / 1000.0;
+        BigDecimal shippingCost = BigDecimal.valueOf(distanceKm).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal subtotal = order.getSubtotal() != null ? order.getSubtotal() : BigDecimal.ZERO;
+        BigDecimal discount = order.getDiscount() != null ? order.getDiscount() : BigDecimal.ZERO;
+        BigDecimal tip = order.getTip() != null ? order.getTip() : BigDecimal.ZERO;
+
+        order.setShippingCost(shippingCost);
+        order.setTotal(subtotal.subtract(discount).add(tip).add(shippingCost));
+
         Order saved = orderRepository.save(order);
 
         notificationService.sendOrderNotification(saved.getUser().getId(), saved.getId(),
@@ -386,43 +406,30 @@ public class OrderServiceImpl implements OrderService {
         return buildPageableResponse(orderPage);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     @Override
     public OrderStatsResponse getOrderStats(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
 
-        if (!order.getStatus().equals(Status.CONFIRMED)) {
-            throw new IllegalArgumentException("Order stats are only available when the order is in CONFIRMED status");
-        }
         if (order.getDeliveryPerson() == null) {
             throw new IllegalArgumentException("No delivery person assigned to this order yet");
         }
 
         DeliveryPersonResponse driver = deliveryPersonService.findById(order.getDeliveryPerson().getId());
-        Restaurant restaurant = order.getRestaurant();
-        UserAddress userAddress = order.getUserAddress();
 
         RouteResult route = googleMapsService.computeRoute(
                 driver.latitude(), driver.longitude(),
-                restaurant.getLatitude(), restaurant.getLongitude(),
-                userAddress.getLatitude(), userAddress.getLongitude()
+                order.getRestaurant().getLatitude(), order.getRestaurant().getLongitude(),
+                order.getUserAddress().getLatitude(), order.getUserAddress().getLongitude()
         );
 
         double distanceKm = route.distanceMeters() / 1000.0;
-        BigDecimal shippingCost = BigDecimal.valueOf(distanceKm).setScale(2, RoundingMode.HALF_UP);
-
-        order.setShippingCost(shippingCost);
-        BigDecimal subtotal = order.getSubtotal() != null ? order.getSubtotal() : BigDecimal.ZERO;
-        BigDecimal discount = order.getDiscount() != null ? order.getDiscount() : BigDecimal.ZERO;
-        BigDecimal tip = order.getTip() != null ? order.getTip() : BigDecimal.ZERO;
-        order.setTotal(subtotal.subtract(discount).add(tip).add(shippingCost));
-        orderRepository.save(order);
 
         return OrderStatsResponse.builder()
                 .distanceKm(Math.round(distanceKm * 100.0) / 100.0)
                 .durationSeconds(route.durationSeconds())
-                .shippingCost(shippingCost)
+                .shippingCost(order.getShippingCost())
                 .build();
     }
 
