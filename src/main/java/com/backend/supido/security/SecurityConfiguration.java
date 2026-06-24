@@ -53,6 +53,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/restaurants", "/api/restaurants/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
