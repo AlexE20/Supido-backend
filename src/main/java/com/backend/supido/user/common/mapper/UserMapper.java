@@ -16,10 +16,14 @@ public class UserMapper {
                 .build();
     }
 
-    public UserResponse toUserDto(User  user){
+    public UserResponse toUserDto(User user){
         return UserResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .role(user.getRole().getName())
+                .createdAt(user.getCreatedAt())
                 .build();
     }
 
