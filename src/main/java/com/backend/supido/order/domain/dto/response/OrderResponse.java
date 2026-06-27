@@ -2,7 +2,7 @@ package com.backend.supido.order.domain.dto.response;
 
 
 import com.backend.supido.order.common.enums.Status;
-import com.backend.supido.order.domain.dto.RestaurantSummaryDTO;
+import com.backend.supido.common.utils.RestaurantSummaryDTO;
 import com.backend.supido.orderItem.domain.dto.response.OrderItemResponse;
 import lombok.Builder;
 
@@ -18,7 +18,7 @@ public record OrderResponse(
         RestaurantSummaryDTO restaurant,
         Long deliveryPersonId,
         Long cuponId,
-        Status status, //cambiar a enum
+        Status status,
         String deliveryAddress,
         BigDecimal subtotal,
         BigDecimal shippingCost,

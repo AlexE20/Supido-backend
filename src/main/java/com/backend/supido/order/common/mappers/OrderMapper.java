@@ -1,6 +1,7 @@
 package com.backend.supido.order.common.mappers;
 
-import com.backend.supido.order.domain.dto.RestaurantSummaryDTO;
+import com.backend.supido.common.utils.RestaurantSummaryDTO;
+import com.backend.supido.common.utils.RestaurantUtils;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
 import com.backend.supido.order.domain.dto.response.OrderResponse;
