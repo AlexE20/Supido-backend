@@ -21,6 +21,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,11 +42,11 @@ public class ClaimServiceImpl implements ClaimService {
             throw new IllegalArgumentException("Claims can only be filed for delivered orders");
         }
 
-        if (!order.getUser().getId().equals(user.getId())) {
+        if (!Objects.equals(order.getUser().getId(), user.getId())) {
             throw new AccessDeniedException("You can only file claims for your own orders");
         }
 
-        Claim claim = ClaimMapper.toEntity(request, order, user);
+        Claim claim = ClaimMapper.toEntity(request, user, order);
         return ClaimMapper.toDto(claimRepository.save(claim));
     }
 
@@ -102,17 +103,17 @@ public class ClaimServiceImpl implements ClaimService {
     public List<ClaimResponse> findByOrderId(Long orderId, User user) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
-        if (!order.getUser().getId().equals(user.getId())) {
+        if (!Objects.equals(order.getUser().getId(), user.getId())) {
             throw new AccessDeniedException("You do not have permission to access claims for this order");
         }
-        return claimRepository.findByOrder_Id(orderId).stream()
+        return claimRepository.findByOrderId(orderId).stream()
                 .map(ClaimMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<ClaimResponse> findByUserId(Long userId) {
-        return claimRepository.findByUser_Id(userId).stream()
+        return claimRepository.findByUserId(userId).stream()
                 .map(ClaimMapper::toDto)
                 .collect(Collectors.toList());
     }

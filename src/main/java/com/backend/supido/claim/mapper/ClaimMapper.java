@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 public class ClaimMapper {
 
-    public static Claim toEntity(CreateClaimRequest request, Order order, User user) {
+    public static Claim toEntity(CreateClaimRequest request, User user, Order order) {
         return Claim.builder()
                 .order(order)
                 .user(user)
