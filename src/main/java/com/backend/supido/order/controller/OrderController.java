@@ -81,6 +81,7 @@ public class OrderController {
         return buildResponse("Order delivered successfully", HttpStatus.OK, orderService.deliver(id));
     }
 
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
     @PatchMapping("/{id}/assign-delivery-person")
     public ResponseEntity<GeneralResponse> assignDeliveryPerson(@PathVariable Long id, @RequestParam Long deliveryPersonId) {
         return buildResponse("Delivery person assigned successfully", HttpStatus.OK, orderService.assignDeliveryPerson(id, deliveryPersonId));
@@ -91,6 +92,7 @@ public class OrderController {
         return buildResponse("Order accepted successfully", HttpStatus.OK, orderService.acceptOrder(id, user));
     }
 
+    @PreAuthorize("hasRole('DELIVERY') or hasRole('SUPER')")
     @PatchMapping("/{id}/confirm-cash-payment")
     public ResponseEntity<GeneralResponse> confirmCashPayment(@PathVariable Long id, @RequestParam Long deliveryPersonId) {
         orderService.confirmCashPayment(id, deliveryPersonId);

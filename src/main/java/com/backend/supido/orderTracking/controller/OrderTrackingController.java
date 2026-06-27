@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -20,6 +21,7 @@ public class OrderTrackingController {
 
     private final OrderTrackingService orderTrackingService;
 
+    @PreAuthorize("hasRole('SUPER') or hasRole('DELIVERY')")
     @PostMapping
     public ResponseEntity<GeneralResponse> create(@Valid @RequestBody CreateOrderTrackingRequest request) {
         return buildResponse("Order tracking created successfully", HttpStatus.CREATED, orderTrackingService.create(request));
@@ -35,16 +37,19 @@ public class OrderTrackingController {
         return buildResponse("Order tracking retrieved successfully", HttpStatus.OK, orderTrackingService.findByOrderId(orderId));
     }
 
+    @PreAuthorize("hasRole('SUPER')")
     @GetMapping
     public ResponseEntity<GeneralResponse> findAll() {
         return buildResponse("Order trackings retrieved successfully", HttpStatus.OK, orderTrackingService.findAll());
     }
 
+    @PreAuthorize("hasRole('SUPER') or hasRole('DELIVERY')")
     @PutMapping("/{id}")
     public ResponseEntity<GeneralResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateOrderTrackingRequest request) {
         return buildResponse("Order tracking updated successfully", HttpStatus.OK, orderTrackingService.update(id, request));
     }
 
+    @PreAuthorize("hasRole('SUPER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<GeneralResponse> delete(@PathVariable Long id) {
         orderTrackingService.delete(id);

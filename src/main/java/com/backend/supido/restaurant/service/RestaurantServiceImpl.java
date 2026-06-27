@@ -74,9 +74,8 @@ public class RestaurantServiceImpl implements RestaurantService {
             throw new IllegalArgumentException("Restaurant with name '" + request.name() + "' already exists");
         }
 
-        if(!user.getId().equals(restaurant.getUser().getId())) {
+        if(!"ROLE_SUPER".equals(user.getRole().getName()) && !user.getId().equals(restaurant.getUser().getId())) {
             throw new IllegalArgumentException("This user is not allowed to update restaurant");
-
         }
 
 
@@ -97,9 +96,8 @@ public class RestaurantServiceImpl implements RestaurantService {
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id " + id));
 
-        if(!user.getId().equals(restaurant.getUser().getId())) {
+        if(!"ROLE_SUPER".equals(user.getRole().getName()) && !user.getId().equals(restaurant.getUser().getId())) {
             throw new IllegalArgumentException("This user is not allowed to do this action");
-
         }
 
         restaurantRepository.deleteById(id);
