@@ -28,3 +28,7 @@ application:
     jwt:
       secret-key: ${JWT_SECRET_KEY}
       expiration: 86400000
+
+google:
+  maps:
+    api-key: ${GOOGLE_MAPS_API_KEY}

@@ -38,7 +38,6 @@ public class OrderMapper {
                 .couponId(request.couponId())
                 .deliveryAddress(request.deliveryAddress())
                 .status(request.status())
-                .deliveryPersonId(request.deliveryPersonId())
                 .tip(request.tip())
                 .build();
     }
@@ -60,7 +59,7 @@ public class OrderMapper {
                 order.getId(),
                 order.getUser().getId(),
                 restaurantSummary,
-                order.getDeliveryPersonId(),
+                order.getDeliveryPerson() != null ? order.getDeliveryPerson().getId() : null,
                 order.getCouponId(),
                 order.getStatus(),
                 order.getDeliveryAddress(),

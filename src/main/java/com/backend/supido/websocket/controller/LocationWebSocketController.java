@@ -2,6 +2,7 @@ package com.backend.supido.websocket.controller;
 
 import com.backend.supido.deliveryPerson.domain.dto.response.DeliveryPersonResponse;
 import com.backend.supido.deliveryPerson.service.DeliveryPersonService;
+import com.backend.supido.order.common.enums.Status;
 import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.order.repository.OrderRepository;
 import com.backend.supido.websocket.dto.DriverLocationBroadcast;
@@ -45,7 +46,7 @@ public class LocationWebSocketController {
                 .timestamp(message.getTimestamp())
                 .build());
 
-        List<Order> activeOrders = orderRepository.findByDeliveryPersonId(message.getDeliveryPersonId());
+        List<Order> activeOrders = orderRepository.findByDeliveryPerson_Id(message.getDeliveryPersonId());
         for (Order order : activeOrders) {
             if (isActiveStatus(String.valueOf(order.getStatus()))) {
                 LocationBroadcast broadcast = LocationBroadcast.builder()
@@ -62,7 +63,7 @@ public class LocationWebSocketController {
         }
     }
 
-    private boolean isActiveStatus(String status) {
-        return "CONFIRMED".equals(status) || "PREPARING".equals(status) || "ON_THE_WAY".equals(status);
+    private boolean isActiveStatus(Status status) {
+        return status == Status.CONFIRMED || status == Status.PREPARING || status == Status.ON_THE_WAY;
     }
 }

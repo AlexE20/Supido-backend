@@ -1,5 +1,7 @@
 package com.backend.supido.deliveryPerson.service;
 
+import com.backend.supido.auth.domain.entity.Role;
+import com.backend.supido.auth.repository.RoleRepository;
 import com.backend.supido.common.utils.GeoUtils;
 import com.backend.supido.deliveryPerson.domain.dto.request.CreateDeliveryPersonRequest;
 import com.backend.supido.deliveryPerson.domain.dto.request.UpdateDeliveryPersonRequest;
@@ -8,6 +10,8 @@ import com.backend.supido.deliveryPerson.domain.entity.DeliveryPerson;
 import com.backend.supido.deliveryPerson.mapper.DeliveryPersonMapper;
 import com.backend.supido.deliveryPerson.repository.DeliveryPersonRepository;
 import com.backend.supido.exceptions.ResourceNotFoundException;
+import com.backend.supido.user.domain.entity.User;
+import com.backend.supido.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +24,24 @@ import java.util.stream.Collectors;
 public class DeliveryPersonServiceImpl implements DeliveryPersonService {
 
     private final DeliveryPersonRepository deliveryPersonRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
     @Override
     public DeliveryPersonResponse create(CreateDeliveryPersonRequest request) {
         if (deliveryPersonRepository.findByUserId(request.userId()).isPresent()) {
             throw new IllegalArgumentException("A delivery person already exists for userId: " + request.userId());
         }
+
+        User user = userRepository.findById(request.userId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.userId()));
+
+        Role driverRole = roleRepository.findByName("ROLE_DELIVERY")
+                .orElseThrow(() -> new ResourceNotFoundException("Role ROLE_DELIVERY not found"));
+
+        user.setRole(driverRole);
+        userRepository.save(user);
+
         DeliveryPerson saved = deliveryPersonRepository.save(DeliveryPersonMapper.toEntity(request));
         return DeliveryPersonMapper.toDto(saved);
     }

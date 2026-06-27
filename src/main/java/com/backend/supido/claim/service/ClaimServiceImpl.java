@@ -42,11 +42,11 @@ public class ClaimServiceImpl implements ClaimService {
             throw new IllegalArgumentException("Claims can only be filed for delivered orders");
         }
 
-        if (!Objects.equals(order.getUser().getId(), user.getId())) {
+        if (!order.getUser().getId().equals(user.getId())) {
             throw new AccessDeniedException("You can only file claims for your own orders");
         }
 
-        Claim claim = ClaimMapper.toEntity(request, user, order);
+        Claim claim = ClaimMapper.toEntity(request, order, user);
         return ClaimMapper.toDto(claimRepository.save(claim));
     }
 
@@ -103,17 +103,17 @@ public class ClaimServiceImpl implements ClaimService {
     public List<ClaimResponse> findByOrderId(Long orderId, User user) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
-        if (!Objects.equals(order.getUser().getId(), user.getId())) {
+        if (!order.getUser().getId().equals(user.getId())) {
             throw new AccessDeniedException("You do not have permission to access claims for this order");
         }
-        return claimRepository.findByOrderId(orderId).stream()
+        return claimRepository.findByOrder_Id(orderId).stream()
                 .map(ClaimMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<ClaimResponse> findByUserId(Long userId) {
-        return claimRepository.findByUserId(userId).stream()
+        return claimRepository.findByUser_Id(userId).stream()
                 .map(ClaimMapper::toDto)
                 .collect(Collectors.toList());
     }
