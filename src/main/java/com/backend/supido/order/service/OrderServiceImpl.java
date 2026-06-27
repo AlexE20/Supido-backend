@@ -302,7 +302,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public OrderResponse acceptOrder(Long id, User user) {
-        if (!"ROLE_DRIVER".equals(user.getRole().getName())) {
+        if (!"ROLE_DELIVERY".equals(user.getRole().getName())) {
             throw new IllegalArgumentException("Only delivery persons can accept orders");
         }
 
@@ -410,7 +410,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public PageableResponse<OrderResponse> findByDeliveryPersonId(Long deliveryPersonId, int page, int size, User user) {
-        if ("ROLE_DRIVER".equals(user.getRole().getName())) {
+        if ("ROLE_DELIVERY".equals(user.getRole().getName())) {
             DeliveryPersonResponse driverProfile = deliveryPersonService.findByUserId(user.getId());
             if (!driverProfile.id().equals(deliveryPersonId)) {
                 throw new IllegalArgumentException("You are not authorized to view orders from another driver");
@@ -422,7 +422,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Override
     public PageableResponse<OrderResponse> findDeliveredOrdersByDeliveryPersonId(Long deliveryPersonId, int page, int size, User user) {
-        if ("ROLE_DRIVER".equals(user.getRole().getName())) {
+        if ("ROLE_DELIVERY".equals(user.getRole().getName())) {
             DeliveryPersonResponse driverProfile = deliveryPersonService.findByUserId(user.getId());
             if (!driverProfile.id().equals(deliveryPersonId)) {
                 throw new IllegalArgumentException("You are not authorized to view orders from another driver");
