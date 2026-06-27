@@ -27,6 +27,7 @@ public interface OrderService {
 
     // Asignación
     OrderResponse assignDeliveryPerson(Long id, Long deliveryPersonId);
+    OrderResponse acceptOrder(Long id, User user);
 
     // Pago
     void confirmCashPayment(Long id, Long deliveryPersonId);

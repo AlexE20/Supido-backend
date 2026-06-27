@@ -301,6 +301,33 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
+    public OrderResponse acceptOrder(Long id, User user) {
+        if (!"ROLE_DRIVER".equals(user.getRole().getName())) {
+            throw new IllegalArgumentException("Only delivery persons can accept orders");
+        }
+
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+
+        if (!order.getStatus().equals(Status.CONFIRMED)) {
+            throw new IllegalArgumentException("Order can only be accepted when it is CONFIRMED");
+        }
+
+        if (order.getDeliveryPerson() != null) {
+            throw new IllegalArgumentException("This order has already been claimed by another driver");
+        }
+
+        DeliveryPersonResponse driverProfile = deliveryPersonService.findByUserId(user.getId());
+
+        if (!driverProfile.available()) {
+            throw new IllegalArgumentException("You must be set as available to accept orders");
+        }
+
+        return assignDeliveryPerson(id, driverProfile.id());
+    }
+
+    @Transactional
+    @Override
     public OrderResponse assignDeliveryPerson(Long id, Long deliveryPersonId) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));

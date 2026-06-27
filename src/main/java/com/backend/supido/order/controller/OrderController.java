@@ -57,21 +57,25 @@ public class OrderController {
         return buildResponse("Order cancelled successfully", HttpStatus.OK, null);
     }
 
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
     @PatchMapping("/{id}/confirm")
     public ResponseEntity<GeneralResponse> confirm(@PathVariable Long id) {
         return buildResponse("Order confirmed successfully", HttpStatus.OK, orderService.confirm(id));
     }
 
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
     @PatchMapping("/{id}/prepare")
     public ResponseEntity<GeneralResponse> prepare(@PathVariable Long id) {
         return buildResponse("Order preparing", HttpStatus.OK, orderService.prepare(id));
     }
 
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
     @PatchMapping("/{id}/on-the-way")
     public ResponseEntity<GeneralResponse> onTheWay(@PathVariable Long id) {
         return buildResponse("Order on the way", HttpStatus.OK, orderService.onTheWay(id));
     }
 
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
     @PatchMapping("/{id}/deliver")
     public ResponseEntity<GeneralResponse> deliver(@PathVariable Long id) {
         return buildResponse("Order delivered successfully", HttpStatus.OK, orderService.deliver(id));
@@ -80,6 +84,11 @@ public class OrderController {
     @PatchMapping("/{id}/assign-delivery-person")
     public ResponseEntity<GeneralResponse> assignDeliveryPerson(@PathVariable Long id, @RequestParam Long deliveryPersonId) {
         return buildResponse("Delivery person assigned successfully", HttpStatus.OK, orderService.assignDeliveryPerson(id, deliveryPersonId));
+    }
+
+    @PatchMapping("/{id}/accept")
+    public ResponseEntity<GeneralResponse> acceptOrder(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        return buildResponse("Order accepted successfully", HttpStatus.OK, orderService.acceptOrder(id, user));
     }
 
     @PatchMapping("/{id}/confirm-cash-payment")
