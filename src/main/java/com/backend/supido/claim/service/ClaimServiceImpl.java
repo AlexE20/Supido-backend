@@ -106,14 +106,14 @@ public class ClaimServiceImpl implements ClaimService {
         if (!Objects.equals(order.getUser().getId(), user.getId())) {
             throw new AccessDeniedException("You do not have permission to access claims for this order");
         }
-        return claimRepository.findByOrderId(orderId).stream()
+        return claimRepository.findByOrder_Id(orderId).stream()
                 .map(ClaimMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<ClaimResponse> findByUserId(Long userId) {
-        return claimRepository.findByUserId(userId).stream()
+        return claimRepository.findByUser_Id(userId).stream()
                 .map(ClaimMapper::toDto)
                 .collect(Collectors.toList());
     }

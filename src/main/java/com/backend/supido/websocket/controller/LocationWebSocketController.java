@@ -48,7 +48,7 @@ public class LocationWebSocketController {
 
         List<Order> activeOrders = orderRepository.findByDeliveryPerson_Id(message.getDeliveryPersonId());
         for (Order order : activeOrders) {
-            if (isActiveStatus(String.valueOf(order.getStatus()))) {
+            if (isActiveStatus(order.getStatus())) {
                 LocationBroadcast broadcast = LocationBroadcast.builder()
                         .orderId(order.getId())
                         .deliveryPersonId(message.getDeliveryPersonId())
