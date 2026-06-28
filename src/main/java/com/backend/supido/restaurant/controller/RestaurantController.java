@@ -51,6 +51,13 @@ public class RestaurantController {
                 restaurantService.findByCategory(category));
     }
 
+    @GetMapping("/my-restaurant")
+    @PreAuthorize("hasRole('RESTAURANT')")
+    public ResponseEntity<GeneralResponse> getMyRestaurant(@AuthenticationPrincipal User user) {
+        return buildResponse("Restaurant retrieved", HttpStatus.OK,
+                restaurantService.findMyRestaurant(user));
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
     public ResponseEntity<GeneralResponse> create(@Valid @RequestBody RestaurantDTORequest request,@AuthenticationPrincipal User user) {

@@ -43,6 +43,13 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
+    public RestaurantDTOResponse findMyRestaurant(User user) {
+        Restaurant restaurant = restaurantRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("No restaurant found for this account"));
+        return RestaurantMapper.toResponse(restaurant);
+    }
+
+    @Override
     public PageableResponse<RestaurantDTOResponse> findAllRestaurants(int page, int size, String sortBy, String sortOrder) {
         Sort sort = sortOrder.equalsIgnoreCase("desc") ?
                 Sort.by(sortBy).descending() :
