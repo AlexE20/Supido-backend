@@ -14,7 +14,7 @@ public interface OrderService {
 
     // CRUD básico
     OrderResponse create(CreateOrderRequest request, User user);
-    OrderResponse findById(Long id);
+    OrderResponse findById(Long id, User user);
     List<OrderResponse> findAll();
     OrderResponse update(Long id, UpdateOrderRequest request,User user);
     void cancel(Long id);

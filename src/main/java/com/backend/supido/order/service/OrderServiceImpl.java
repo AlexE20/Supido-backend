@@ -139,9 +139,25 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = true)
     @Override
-    public OrderResponse findById(Long id) {
+    public OrderResponse findById(Long id, User user) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+
+        String role = user.getRole().getName();
+        if ("ROLE_DELIVERY".equals(role)) {
+            boolean isConfirmed = Status.CONFIRMED.equals(order.getStatus());
+            if (!isConfirmed) {
+                DeliveryPersonResponse driverProfile = deliveryPersonService.findByUserId(user.getId());
+                if (order.getDeliveryPerson() == null || !driverProfile.id().equals(order.getDeliveryPerson().getId())) {
+                    throw new IllegalArgumentException("You do not have permission to view this order");
+                }
+            }
+        } else if ("ROLE_RESTAURANT".equals(role)) {
+            if (!order.getRestaurant().getUser().getId().equals(user.getId())) {
+                throw new IllegalArgumentException("You do not have permission to view this order");
+            }
+        }
+
         return OrderMapper.toDto(order);
     }
 

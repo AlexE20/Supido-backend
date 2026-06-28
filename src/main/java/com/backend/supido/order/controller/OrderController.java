@@ -28,10 +28,10 @@ public class OrderController {
                                                   @AuthenticationPrincipal User user) {
         return buildResponse("Order created successfully", HttpStatus.CREATED, orderService.create(request, user));
     }
-    @PreAuthorize("hasRole('SUPER')")
+    @PreAuthorize("hasRole('SUPER') or hasRole('DELIVERY') or hasRole('RESTAURANT')")
     @GetMapping("/{id}")
-    public ResponseEntity<GeneralResponse> findById(@PathVariable Long id) {
-        return buildResponse("Order retrieved successfully", HttpStatus.OK, orderService.findById(id));
+    public ResponseEntity<GeneralResponse> findById(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        return buildResponse("Order retrieved successfully", HttpStatus.OK, orderService.findById(id, user));
     }
 
     @PreAuthorize("hasRole('SUPER')")
