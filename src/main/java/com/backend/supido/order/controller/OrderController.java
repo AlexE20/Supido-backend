@@ -75,7 +75,7 @@ public class OrderController {
         return buildResponse("Order on the way", HttpStatus.OK, orderService.onTheWay(id));
     }
 
-    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER') or hasRole('DELIVERY')")
     @PatchMapping("/{id}/deliver")
     public ResponseEntity<GeneralResponse> deliver(@PathVariable Long id) {
         return buildResponse("Order delivered successfully", HttpStatus.OK, orderService.deliver(id));
