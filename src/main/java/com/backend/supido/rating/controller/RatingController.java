@@ -30,6 +30,12 @@ public class RatingController {
                 ratingService.findById(id));
     }
 
+    @GetMapping("/order/{orderId}")
+    public ResponseEntity<GeneralResponse> findByOrderId(@PathVariable Long orderId) {
+        return buildResponse("Ratings for order: " + orderId, HttpStatus.OK,
+                ratingService.findByOrderId(orderId));
+    }
+
     @GetMapping("/restaurant/{restaurantId}")// lo puede ver el cliente, el restaurante y el admin
     public ResponseEntity<GeneralResponse> findByRestaurant(
             @PathVariable Long restaurantId,
