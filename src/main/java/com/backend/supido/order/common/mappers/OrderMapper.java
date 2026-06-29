@@ -70,7 +70,46 @@ public class OrderMapper {
                 order.getTotal(),
                 order.getCreatedAt(),
                 order.getDeliveredAt(),
-                items
+                items,
+                null, null, null, null
+        );
+    }
+
+    public static OrderResponse toDtoForDelivery(Order order) {
+        Restaurant r = order.getRestaurant();
+        RestaurantSummaryDTO restaurantSummary = RestaurantSummaryDTO.builder()
+                .id(r.getId())
+                .name(r.getName())
+                .build();
+
+        List<OrderItemResponse> items = order.getItems() != null ?
+                order.getItems().stream()
+                .map(OrderItemMapper::toDto)
+                .collect(Collectors.toList())
+                : List.of();
+
+        UserAddress ua = order.getUserAddress();
+
+        return new OrderResponse(
+                order.getId(),
+                order.getUser().getId(),
+                restaurantSummary,
+                order.getDeliveryPerson() != null ? order.getDeliveryPerson().getId() : null,
+                order.getCouponId(),
+                order.getStatus(),
+                order.getDeliveryAddress(),
+                order.getSubtotal(),
+                order.getShippingCost(),
+                order.getDiscount(),
+                order.getTip(),
+                order.getTotal(),
+                order.getCreatedAt(),
+                order.getDeliveredAt(),
+                items,
+                r.getLatitude(),
+                r.getLongitude(),
+                ua != null ? ua.getLatitude() : null,
+                ua != null ? ua.getLongitude() : null
         );
     }
 }

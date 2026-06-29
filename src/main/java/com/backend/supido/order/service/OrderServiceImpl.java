@@ -152,6 +152,7 @@ public class OrderServiceImpl implements OrderService {
                     throw new IllegalArgumentException("You do not have permission to view this order");
                 }
             }
+            return OrderMapper.toDtoForDelivery(order);
         } else if ("ROLE_RESTAURANT".equals(role)) {
             if (!order.getRestaurant().getUser().getId().equals(user.getId())) {
                 throw new IllegalArgumentException("You do not have permission to view this order");

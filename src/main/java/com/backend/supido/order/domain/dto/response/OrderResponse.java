@@ -27,6 +27,10 @@ public record OrderResponse(
         BigDecimal total,
         LocalDateTime createdAt,
         LocalDateTime deliveredAt,
-        List<OrderItemResponse> items
+        List<OrderItemResponse> items,
+        Double restaurantLatitude,
+        Double restaurantLongitude,
+        Double deliveryLatitude,
+        Double deliveryLongitude
 ) {
 }
