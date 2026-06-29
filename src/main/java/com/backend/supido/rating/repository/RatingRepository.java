@@ -5,10 +5,10 @@ import com.backend.supido.rating.common.enums.RatingType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface RatingRepository extends JpaRepository<Rating, Long> {
 
@@ -20,10 +20,10 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
 
     Page<Rating> findByRatedById(Long ratedById, Pageable pageable);
     
-    @Query("SELECT AVG(r.score) FROM Rating r WHERE r.order.restaurant.id = :restaurantId AND r.type = 'RESTAURANT'")
+    @Query("SELECT AVG(r.score) FROM Rating r WHERE r.order.restaurant.id = :restaurantId")
     Double calculateAverageByRestaurantId(@Param("restaurantId") Long restaurantId);
 
-    @Query("SELECT AVG(r.score) FROM Rating r WHERE r.order.deliveryPerson.id = :deliveryPersonId AND r.type = 'DELIVERY_PERSON'")
+    @Query("SELECT AVG(r.score) FROM Rating r WHERE r.order.deliveryPerson.id = :deliveryPersonId")
     Double calculateAverageByDeliveryPersonId(@Param("deliveryPersonId") Long deliveryPersonId);
 }
 

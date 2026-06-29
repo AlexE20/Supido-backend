@@ -29,6 +29,13 @@ public class UserAddressController {
 
 
     @GetMapping("/name/{addressName}")
+
+
+
+
+
+
+
     public ResponseEntity<GeneralResponse> findByName(@PathVariable String addressName,
                                                       @AuthenticationPrincipal User user) {
         return buildResponse("Address retrieved successfully", HttpStatus.OK, userAddressService.findByName(addressName, user));
