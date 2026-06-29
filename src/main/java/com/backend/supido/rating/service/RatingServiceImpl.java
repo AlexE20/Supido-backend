@@ -1,6 +1,8 @@
 package com.backend.supido.rating.service;
 
 import com.backend.supido.common.PageableResponse;
+import com.backend.supido.deliveryPerson.domain.entity.DeliveryPerson;
+import com.backend.supido.deliveryPerson.repository.DeliveryPersonRepository;
 import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.order.common.enums.Status;
 import com.backend.supido.order.domain.entity.Order;
@@ -13,6 +15,7 @@ import com.backend.supido.rating.common.enums.RatingType;
 import com.backend.supido.rating.repository.RatingRepository;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
 import com.backend.supido.restaurant.repository.RestaurantRepository;
+import com.backend.supido.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,22 +31,21 @@ public class RatingServiceImpl implements RatingService {
     private final RatingRepository ratingRepository;
     private final OrderRepository orderRepository;
     private final RestaurantRepository restaurantRepository;
+    private final DeliveryPersonRepository deliveryPersonRepository;
 
     @Override
     @Transactional
-    public RatingDTOResponse createRating(RatingDTORequest request) {
+    public RatingDTOResponse createRating(RatingDTORequest request, User user) {
         Order order = orderRepository.findById(request.orderId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Order not found with id " + request.orderId()));
 
-        if (request.type() != RatingType.RESTAURANT) {
-            throw new IllegalArgumentException(
-                    "Rating type '" + request.type() + "' is not supported yet");
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("You do not have permission to rate this order");
         }
 
         if (order.getStatus() != Status.DELIVERED) {
-            throw new IllegalArgumentException(
-                    "Order must be DELIVERED before it can be rated");
+            throw new IllegalArgumentException("Order must be DELIVERED before it can be rated");
         }
 
         if (ratingRepository.existsByOrder_IdAndType(order.getId(), request.type())) {
@@ -51,16 +53,26 @@ public class RatingServiceImpl implements RatingService {
                     "This order has already been rated for type " + request.type());
         }
 
-        Rating rating = RatingMapper.toEntity(request);
+        Rating rating = RatingMapper.toEntity(request, user.getId());
         rating.setOrder(order);
         ratingRepository.save(rating);
 
-        Double newAverage = ratingRepository.calculateAverageByRestaurantId(
-                order.getRestaurant().getId()
-        );
-        Restaurant restaurant = order.getRestaurant();
-        restaurant.setAverageRating(newAverage != null ? newAverage : 0.0);
-        restaurantRepository.save(restaurant);
+        if (request.type() == RatingType.RESTAURANT) {
+            Double newAverage = ratingRepository.calculateAverageByRestaurantId(
+                    order.getRestaurant().getId());
+            Restaurant restaurant = order.getRestaurant();
+            restaurant.setAverageRating(newAverage != null ? newAverage : 0.0);
+            restaurantRepository.save(restaurant);
+        } else if (request.type() == RatingType.DELIVERY_PERSON) {
+            if (order.getDeliveryPerson() == null) {
+                throw new IllegalArgumentException("This order has no assigned delivery person");
+            }
+            Double newAverage = ratingRepository.calculateAverageByDeliveryPersonId(
+                    order.getDeliveryPerson().getId());
+            DeliveryPerson dp = order.getDeliveryPerson();
+            dp.setAverageRating(newAverage != null ? newAverage : 0.0);
+            deliveryPersonRepository.save(dp);
+        }
 
         return RatingMapper.toResponse(ratingRepository.findById(rating.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Rating not found")));

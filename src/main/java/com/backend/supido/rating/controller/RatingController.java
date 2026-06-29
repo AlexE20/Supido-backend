@@ -3,10 +3,12 @@ package com.backend.supido.rating.controller;
 import com.backend.supido.common.GeneralResponse;
 import com.backend.supido.rating.domain.dto.request.RatingDTORequest;
 import com.backend.supido.rating.service.RatingService;
+import com.backend.supido.user.domain.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.time.LocalDateTime;
@@ -19,9 +21,10 @@ public class RatingController {
     private final RatingService ratingService;
 
     @PostMapping
-    public ResponseEntity<GeneralResponse> create(@Valid @RequestBody RatingDTORequest request) { //el cliente lo hace
+    public ResponseEntity<GeneralResponse> create(@Valid @RequestBody RatingDTORequest request,
+                                                  @AuthenticationPrincipal User user) {
         return buildResponse("Rating created successfully", HttpStatus.CREATED,
-                ratingService.createRating(request));
+                ratingService.createRating(request, user));
     }
 
     @GetMapping("/{id}") //lo puede ver cliente, restaurant y el admin
