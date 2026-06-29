@@ -106,7 +106,7 @@ class RatingServiceImplTest {
         @BeforeEach
         void setup() {
             restaurantRequest = RatingDTORequest.builder()
-                    .orderId(100L).ratedById(5L).type(RatingType.RESTAURANT).score(5).build();
+                    .orderId(100L).type(RatingType.RESTAURANT).score(5).build();
         }
 
         @Test
@@ -123,7 +123,7 @@ class RatingServiceImplTest {
             given(restaurantRepository.save(any(Restaurant.class))).willReturn(restaurant);
             given(ratingRepository.findById(1L)).willReturn(Optional.of(savedRating));
 
-            RatingDTOResponse result = ratingService.createRating(restaurantRequest);
+            RatingDTOResponse result = ratingService.createRating(restaurantRequest, customer);
 
             assertThat(result).isNotNull();
             assertThat(result.type()).isEqualTo(RatingType.RESTAURANT);
@@ -145,7 +145,7 @@ class RatingServiceImplTest {
             given(restaurantRepository.save(any(Restaurant.class))).willReturn(restaurant);
             given(ratingRepository.findById(1L)).willReturn(Optional.of(savedRating));
 
-            ratingService.createRating(restaurantRequest);
+            ratingService.createRating(restaurantRequest, customer);
 
             verify(restaurantRepository).save(any(Restaurant.class));
             assertThat(restaurant.getAverageRating()).isEqualTo(0.0);
@@ -156,7 +156,7 @@ class RatingServiceImplTest {
         void shouldThrow_whenOrderNotFound() {
             given(orderRepository.findById(100L)).willReturn(Optional.empty());
 
-            assertThatThrownBy(() -> ratingService.createRating(restaurantRequest))
+            assertThatThrownBy(() -> ratingService.createRating(restaurantRequest, customer))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessageContaining("100");
 
@@ -168,7 +168,7 @@ class RatingServiceImplTest {
         void shouldThrow_whenOrderNotDelivered() {
             given(orderRepository.findById(100L)).willReturn(Optional.of(pendingOrder));
 
-            assertThatThrownBy(() -> ratingService.createRating(restaurantRequest))
+            assertThatThrownBy(() -> ratingService.createRating(restaurantRequest, customer))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("DELIVERED");
 
@@ -181,7 +181,7 @@ class RatingServiceImplTest {
             given(orderRepository.findById(100L)).willReturn(Optional.of(deliveredOrder));
             given(ratingRepository.existsByOrder_IdAndType(100L, RatingType.RESTAURANT)).willReturn(true);
 
-            assertThatThrownBy(() -> ratingService.createRating(restaurantRequest))
+            assertThatThrownBy(() -> ratingService.createRating(restaurantRequest, customer))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("already been rated");
 
@@ -200,7 +200,7 @@ class RatingServiceImplTest {
         @BeforeEach
         void setup() {
             driverRequest = RatingDTORequest.builder()
-                    .orderId(100L).ratedById(5L).type(RatingType.DELIVERY_PERSON).score(4).build();
+                    .orderId(100L).type(RatingType.DELIVERY_PERSON).score(4).build();
         }
 
         @Test
@@ -221,7 +221,7 @@ class RatingServiceImplTest {
             given(deliveryPersonRepository.save(any(DeliveryPerson.class))).willReturn(deliveryPerson);
             given(ratingRepository.findById(2L)).willReturn(Optional.of(driverRating));
 
-            RatingDTOResponse result = ratingService.createRating(driverRequest);
+            RatingDTOResponse result = ratingService.createRating(driverRequest, customer);
 
             assertThat(result).isNotNull();
             assertThat(result.type()).isEqualTo(RatingType.DELIVERY_PERSON);
@@ -247,7 +247,7 @@ class RatingServiceImplTest {
             given(deliveryPersonRepository.save(any(DeliveryPerson.class))).willReturn(deliveryPerson);
             given(ratingRepository.findById(2L)).willReturn(Optional.of(driverRating));
 
-            ratingService.createRating(driverRequest);
+            ratingService.createRating(driverRequest, customer);
 
             assertThat(deliveryPerson.getAverageRating()).isEqualTo(0.0);
         }
@@ -258,9 +258,9 @@ class RatingServiceImplTest {
             given(orderRepository.findById(102L)).willReturn(Optional.of(orderWithoutDriver));
             given(ratingRepository.existsByOrder_IdAndType(102L, RatingType.DELIVERY_PERSON)).willReturn(false);
             RatingDTORequest requestForNoDriver = RatingDTORequest.builder()
-                    .orderId(102L).ratedById(5L).type(RatingType.DELIVERY_PERSON).score(4).build();
+                    .orderId(102L).type(RatingType.DELIVERY_PERSON).score(4).build();
 
-            assertThatThrownBy(() -> ratingService.createRating(requestForNoDriver))
+            assertThatThrownBy(() -> ratingService.createRating(requestForNoDriver, customer))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("delivery person");
 
@@ -273,7 +273,7 @@ class RatingServiceImplTest {
             given(orderRepository.findById(100L)).willReturn(Optional.of(deliveredOrder));
             given(ratingRepository.existsByOrder_IdAndType(100L, RatingType.DELIVERY_PERSON)).willReturn(true);
 
-            assertThatThrownBy(() -> ratingService.createRating(driverRequest))
+            assertThatThrownBy(() -> ratingService.createRating(driverRequest, customer))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("already been rated");
 
