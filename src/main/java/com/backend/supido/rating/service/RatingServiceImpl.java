@@ -12,6 +12,7 @@ import com.backend.supido.rating.domain.dto.request.RatingDTORequest;
 import com.backend.supido.rating.domain.dto.response.RatingDTOResponse;
 import com.backend.supido.rating.domain.entity.Rating;
 import com.backend.supido.rating.common.enums.RatingType;
+import com.backend.supido.user.domain.entity.User;
 import com.backend.supido.rating.repository.RatingRepository;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
 import com.backend.supido.restaurant.repository.RestaurantRepository;
@@ -36,7 +37,7 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     @Transactional
-    public RatingDTOResponse createRating(RatingDTORequest request) {
+    public RatingDTOResponse createRating(RatingDTORequest request, User user) {
         Order order = orderRepository.findById(request.orderId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Order not found with id " + request.orderId()));
@@ -54,7 +55,7 @@ public class RatingServiceImpl implements RatingService {
             throw new IllegalArgumentException("Order has no assigned delivery person to rate");
         }
 
-        Rating rating = RatingMapper.toEntity(request);
+        Rating rating = RatingMapper.toEntity(request, user.getId());
         rating.setOrder(order);
         ratingRepository.save(rating);
 
