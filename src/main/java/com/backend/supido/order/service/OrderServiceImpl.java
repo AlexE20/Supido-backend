@@ -411,7 +411,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public PageableResponse<OrderResponse> findByUserId(Long userId, int page, int size) {
+    public PageableResponse<OrderResponse> findByUserId(Long userId, int page, int size, User user) {
+        if (!"ROLE_SUPER".equals(user.getRole().getName()) && !user.getId().equals(userId)) {
+            throw new IllegalArgumentException("You do not have permission to view orders from another user");
+        }
         Page<Order> orderPage = orderRepository.findByUserId(userId, PageRequest.of(page, size));
         return buildPageableResponse(orderPage);
     }

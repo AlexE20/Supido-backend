@@ -4,11 +4,13 @@ import com.backend.supido.common.GeneralResponse;
 import com.backend.supido.orderTracking.domain.dto.request.CreateOrderTrackingRequest;
 import com.backend.supido.orderTracking.domain.dto.request.UpdateOrderTrackingRequest;
 import com.backend.supido.orderTracking.service.OrderTrackingService;
+import com.backend.supido.user.domain.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -33,8 +35,8 @@ public class OrderTrackingController {
     }
 
     @GetMapping("/order/{orderId}")
-    public ResponseEntity<GeneralResponse> findByOrderId(@PathVariable Long orderId) {
-        return buildResponse("Order tracking retrieved successfully", HttpStatus.OK, orderTrackingService.findByOrderId(orderId));
+    public ResponseEntity<GeneralResponse> findByOrderId(@PathVariable Long orderId, @AuthenticationPrincipal User user) {
+        return buildResponse("Order tracking retrieved successfully", HttpStatus.OK, orderTrackingService.findByOrderId(orderId, user));
     }
 
     @PreAuthorize("hasRole('SUPER')")

@@ -9,6 +9,7 @@ import com.backend.supido.orderTracking.domain.dto.response.OrderTrackingRespons
 import com.backend.supido.orderTracking.domain.entity.OrderTracking;
 import com.backend.supido.orderTracking.mapper.OrderTrackingMapper;
 import com.backend.supido.orderTracking.repository.OrderTrackingRepository;
+import com.backend.supido.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -39,10 +40,16 @@ public class OrderTrackingServiceImpl implements OrderTrackingService {
     }
 
     @Override
-    public OrderTrackingResponse findByOrderId(Long orderId) {
-        return orderTrackingRepository.findByOrder_Id(orderId)
-                .map(OrderTrackingMapper::toDto)
+    public OrderTrackingResponse findByOrderId(Long orderId, User user) {
+        OrderTracking tracking = orderTrackingRepository.findByOrder_Id(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("OrderTracking not found for orderId: " + orderId));
+        String role = user.getRole().getName();
+        boolean isOwner = tracking.getOrder().getUser().getId().equals(user.getId());
+        boolean isAllowed = isOwner || "ROLE_SUPER".equals(role) || "ROLE_DELIVERY".equals(role);
+        if (!isAllowed) {
+            throw new IllegalArgumentException("You do not have permission to view this order tracking");
+        }
+        return OrderTrackingMapper.toDto(tracking);
     }
 
     @Override
@@ -67,6 +74,22 @@ public class OrderTrackingServiceImpl implements OrderTrackingService {
     public void delete(Long id) {
         findOrThrow(id);
         orderTrackingRepository.deleteById(id);
+    }
+
+    @Override
+    public void upsertFromLocation(Long orderId, Double latitude, Double longitude, String status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+        OrderTracking tracking = orderTrackingRepository.findByOrder_Id(orderId)
+                .orElseGet(() -> OrderTracking.builder().order(order).build());
+
+        tracking.setLatitude(latitude);
+        tracking.setLongitude(longitude);
+        tracking.setStatus(status);
+        tracking.setRecordedAt(LocalDateTime.now());
+
+        orderTrackingRepository.save(tracking);
     }
 
     private OrderTracking findOrThrow(Long id) {

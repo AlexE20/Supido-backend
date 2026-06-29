@@ -109,8 +109,9 @@ public class OrderController {
     public ResponseEntity<GeneralResponse> findByUserId(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByUserId(userId, page, size));
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal User user) {
+        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByUserId(userId, page, size, user));
     }
 
     @GetMapping("/restaurant/{restaurantId}")
