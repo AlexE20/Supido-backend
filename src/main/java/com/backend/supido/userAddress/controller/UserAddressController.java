@@ -27,7 +27,15 @@ public class UserAddressController {
         return buildResponse("Address created successfully", HttpStatus.CREATED, userAddressService.create(request, user));
     }
 
+
     @GetMapping("/name/{addressName}")
+
+
+
+
+
+
+
     public ResponseEntity<GeneralResponse> findByName(@PathVariable String addressName,
                                                       @AuthenticationPrincipal User user) {
         return buildResponse("Address retrieved successfully", HttpStatus.OK, userAddressService.findByName(addressName, user));

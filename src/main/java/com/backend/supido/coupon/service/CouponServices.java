@@ -11,5 +11,6 @@ public interface CouponServices {
     CouponResponse findByCode(String code);
     PageableResponse<CouponResponse> findAll(int page, int size);
     CouponResponse update(Long id, UpdateCouponRequest request);
+    CouponResponse toggleActive(Long id);
     void delete(Long id);
 }

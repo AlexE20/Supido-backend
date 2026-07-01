@@ -28,10 +28,10 @@ public class OrderController {
                                                   @AuthenticationPrincipal User user) {
         return buildResponse("Order created successfully", HttpStatus.CREATED, orderService.create(request, user));
     }
-    @PreAuthorize("hasRole('SUPER')")
+    @PreAuthorize("hasRole('SUPER') or hasRole('DELIVERY') or hasRole('RESTAURANT')")
     @GetMapping("/{id}")
-    public ResponseEntity<GeneralResponse> findById(@PathVariable Long id) {
-        return buildResponse("Order retrieved successfully", HttpStatus.OK, orderService.findById(id));
+    public ResponseEntity<GeneralResponse> findById(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        return buildResponse("Order retrieved successfully", HttpStatus.OK, orderService.findById(id, user));
     }
 
     @PreAuthorize("hasRole('SUPER')")
@@ -75,12 +75,13 @@ public class OrderController {
         return buildResponse("Order on the way", HttpStatus.OK, orderService.onTheWay(id));
     }
 
-    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER') or hasRole('DELIVERY')")
     @PatchMapping("/{id}/deliver")
     public ResponseEntity<GeneralResponse> deliver(@PathVariable Long id) {
         return buildResponse("Order delivered successfully", HttpStatus.OK, orderService.deliver(id));
     }
 
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
     @PatchMapping("/{id}/assign-delivery-person")
     public ResponseEntity<GeneralResponse> assignDeliveryPerson(@PathVariable Long id, @RequestParam Long deliveryPersonId) {
         return buildResponse("Delivery person assigned successfully", HttpStatus.OK, orderService.assignDeliveryPerson(id, deliveryPersonId));
@@ -91,6 +92,7 @@ public class OrderController {
         return buildResponse("Order accepted successfully", HttpStatus.OK, orderService.acceptOrder(id, user));
     }
 
+    @PreAuthorize("hasRole('DELIVERY') or hasRole('SUPER')")
     @PatchMapping("/{id}/confirm-cash-payment")
     public ResponseEntity<GeneralResponse> confirmCashPayment(@PathVariable Long id, @RequestParam Long deliveryPersonId) {
         orderService.confirmCashPayment(id, deliveryPersonId);
@@ -107,8 +109,9 @@ public class OrderController {
     public ResponseEntity<GeneralResponse> findByUserId(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByUserId(userId, page, size));
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal User user) {
+        return buildResponse("Orders retrieved successfully", HttpStatus.OK, orderService.findByUserId(userId, page, size, user));
     }
 
     @GetMapping("/restaurant/{restaurantId}")

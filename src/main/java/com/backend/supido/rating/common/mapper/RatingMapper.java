@@ -27,9 +27,9 @@ public class RatingMapper {
         );
     }
 
-    public static Rating toEntity(RatingDTORequest request) {
+    public static Rating toEntity(RatingDTORequest request, Long ratedById) {
         return Rating.builder()
-                .ratedById(request.ratedById())
+                .ratedById(ratedById)
                 .type(request.type())
                 .score(request.score())
                 .build();

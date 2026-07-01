@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -42,11 +43,13 @@ public class ClaimController {
         return buildResponse("Claims retrieved", HttpStatus.OK, claimService.findByUserId(user.getId()));
     }
 
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
     @PatchMapping("/{id}/approve")
     public ResponseEntity<GeneralResponse> approve(@PathVariable Long id, @Valid @RequestBody ApproveClaimRequest request) {
         return buildResponse("Claim approved", HttpStatus.OK, claimService.approve(id, request));
     }
 
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
     @PatchMapping("/{id}/reject")
     public ResponseEntity<GeneralResponse> reject(@PathVariable Long id) {
         return buildResponse("Claim rejected", HttpStatus.OK, claimService.reject(id));

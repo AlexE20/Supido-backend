@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -34,6 +35,7 @@ public class OrderItemController {
                 orderItemService.findById(orderId, itemId));
     }
 
+    @PreAuthorize("hasRole('SUPER')")
     @PostMapping
     public ResponseEntity<GeneralResponse> create(@PathVariable Long orderId,
                                                   @Valid @RequestBody CreateOrderItemRequest request) {
@@ -41,6 +43,7 @@ public class OrderItemController {
                 orderItemService.create(orderId, request));
     }
 
+    @PreAuthorize("hasRole('SUPER')")
     @PutMapping("/{itemId}")
     public ResponseEntity<GeneralResponse> update(@PathVariable Long orderId,
                                                   @PathVariable Long itemId,
@@ -49,6 +52,7 @@ public class OrderItemController {
                 orderItemService.update(orderId, itemId, request));
     }
 
+    @PreAuthorize("hasRole('SUPER')")
     @DeleteMapping("/{itemId}")
     public ResponseEntity<GeneralResponse> delete(@PathVariable Long orderId,
                                                   @PathVariable Long itemId) {

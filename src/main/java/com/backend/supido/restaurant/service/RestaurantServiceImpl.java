@@ -43,6 +43,13 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
+    public RestaurantDTOResponse findMyRestaurant(User user) {
+        Restaurant restaurant = restaurantRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("No restaurant found for this account"));
+        return RestaurantMapper.toResponse(restaurant);
+    }
+
+    @Override
     public PageableResponse<RestaurantDTOResponse> findAllRestaurants(int page, int size, String sortBy, String sortOrder) {
         Sort sort = sortOrder.equalsIgnoreCase("desc") ?
                 Sort.by(sortBy).descending() :
@@ -74,9 +81,8 @@ public class RestaurantServiceImpl implements RestaurantService {
             throw new IllegalArgumentException("Restaurant with name '" + request.name() + "' already exists");
         }
 
-        if(!user.getId().equals(restaurant.getUser().getId())) {
+        if(!"ROLE_SUPER".equals(user.getRole().getName()) && !user.getId().equals(restaurant.getUser().getId())) {
             throw new IllegalArgumentException("This user is not allowed to update restaurant");
-
         }
 
 
@@ -97,9 +103,8 @@ public class RestaurantServiceImpl implements RestaurantService {
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id " + id));
 
-        if(!user.getId().equals(restaurant.getUser().getId())) {
+        if(!"ROLE_SUPER".equals(user.getRole().getName()) && !user.getId().equals(restaurant.getUser().getId())) {
             throw new IllegalArgumentException("This user is not allowed to do this action");
-
         }
 
         restaurantRepository.deleteById(id);

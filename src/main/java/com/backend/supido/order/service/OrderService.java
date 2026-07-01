@@ -14,7 +14,7 @@ public interface OrderService {
 
     // CRUD básico
     OrderResponse create(CreateOrderRequest request, User user);
-    OrderResponse findById(Long id);
+    OrderResponse findById(Long id, User user);
     List<OrderResponse> findAll();
     OrderResponse update(Long id, UpdateOrderRequest request,User user);
     void cancel(Long id);
@@ -39,7 +39,7 @@ public interface OrderService {
     OrderStatsResponse getOrderStats(Long id);
 
     // Consultas por relación
-    PageableResponse<OrderResponse> findByUserId(Long userId, int page, int size);
+    PageableResponse<OrderResponse> findByUserId(Long userId, int page, int size, User user);
     PageableResponse<OrderResponse> findByRestaurantId(Long restaurantId, int page, int size);
     PageableResponse<OrderResponse> findByDeliveryPersonId(Long deliveryPersonId, int page, int size, User user);
     PageableResponse<OrderResponse> findDeliveredOrdersByDeliveryPersonId(Long deliveryPersonId, int page, int size, User user);

@@ -9,9 +9,6 @@ public record RatingDTORequest(
         @NotNull(message = "Order id is required")
         Long orderId,
 
-        @NotNull(message = "Rated by id is required")
-        Long ratedById,
-
         @NotNull(message = "Type is required")
         RatingType type,
 
