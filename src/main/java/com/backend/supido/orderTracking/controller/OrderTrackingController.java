@@ -1,0 +1,73 @@
+package com.backend.supido.orderTracking.controller;
+
+import com.backend.supido.common.GeneralResponse;
+import com.backend.supido.orderTracking.domain.dto.request.CreateOrderTrackingRequest;
+import com.backend.supido.orderTracking.domain.dto.request.UpdateOrderTrackingRequest;
+import com.backend.supido.orderTracking.service.OrderTrackingService;
+import com.backend.supido.user.domain.entity.User;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.time.LocalDateTime;
+
+@RestController
+@RequestMapping("api/order-tracking")
+@RequiredArgsConstructor
+public class OrderTrackingController {
+
+    private final OrderTrackingService orderTrackingService;
+
+    @PreAuthorize("hasRole('SUPER') or hasRole('DELIVERY')")
+    @PostMapping
+    public ResponseEntity<GeneralResponse> create(@Valid @RequestBody CreateOrderTrackingRequest request) {
+        return buildResponse("Order tracking created successfully", HttpStatus.CREATED, orderTrackingService.create(request));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<GeneralResponse> findById(@PathVariable Long id) {
+        return buildResponse("Order tracking retrieved successfully", HttpStatus.OK, orderTrackingService.findById(id));
+    }
+
+    @GetMapping("/order/{orderId}")
+    public ResponseEntity<GeneralResponse> findByOrderId(@PathVariable Long orderId, @AuthenticationPrincipal User user) {
+        return buildResponse("Order tracking retrieved successfully", HttpStatus.OK, orderTrackingService.findByOrderId(orderId, user));
+    }
+
+    @PreAuthorize("hasRole('SUPER')")
+    @GetMapping
+    public ResponseEntity<GeneralResponse> findAll() {
+        return buildResponse("Order trackings retrieved successfully", HttpStatus.OK, orderTrackingService.findAll());
+    }
+
+    @PreAuthorize("hasRole('SUPER') or hasRole('DELIVERY')")
+    @PutMapping("/{id}")
+    public ResponseEntity<GeneralResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateOrderTrackingRequest request) {
+        return buildResponse("Order tracking updated successfully", HttpStatus.OK, orderTrackingService.update(id, request));
+    }
+
+    @PreAuthorize("hasRole('SUPER')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<GeneralResponse> delete(@PathVariable Long id) {
+        orderTrackingService.delete(id);
+        return buildResponse("Order tracking deleted successfully", HttpStatus.OK, null);
+    }
+
+    private ResponseEntity<GeneralResponse> buildResponse(String message, HttpStatus status, Object data) {
+        String uri = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+        return ResponseEntity
+                .status(status)
+                .body(GeneralResponse.builder()
+                        .uri(uri)
+                        .message(message)
+                        .status(status.value())
+                        .time(LocalDateTime.now())
+                        .data(data)
+                        .build());
+    }
+}
