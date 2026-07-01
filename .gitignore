@@ -37,3 +37,6 @@ build/
 .env.local
 .env.development
 .env.production
+
+diagrama.pdf
+.claudeignore

@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -20,6 +21,7 @@ public class DeliveryPersonController {
 
     private final DeliveryPersonService deliveryPersonService;
 
+    @PreAuthorize("hasRole('SUPER')")
     @PostMapping
     public ResponseEntity<GeneralResponse> create(@Valid @RequestBody CreateDeliveryPersonRequest request) {
         return buildResponse("Delivery person created successfully", HttpStatus.CREATED, deliveryPersonService.create(request));
@@ -30,6 +32,7 @@ public class DeliveryPersonController {
         return buildResponse("Delivery person retrieved successfully", HttpStatus.OK, deliveryPersonService.findById(id));
     }
 
+    @PreAuthorize("hasRole('SUPER')")
     @GetMapping
     public ResponseEntity<GeneralResponse> findAll() {
         return buildResponse("Delivery persons retrieved successfully", HttpStatus.OK, deliveryPersonService.findAll());
@@ -45,11 +48,13 @@ public class DeliveryPersonController {
         return buildResponse("Available delivery persons retrieved successfully", HttpStatus.OK, deliveryPersonService.findAvailable());
     }
 
+    @PreAuthorize("hasRole('SUPER') or hasRole('DELIVERY')")
     @PutMapping("/{id}")
     public ResponseEntity<GeneralResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateDeliveryPersonRequest request) {
         return buildResponse("Delivery person updated successfully", HttpStatus.OK, deliveryPersonService.update(id, request));
     }
 
+    @PreAuthorize("hasRole('SUPER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<GeneralResponse> delete(@PathVariable Long id) {
         deliveryPersonService.delete(id);

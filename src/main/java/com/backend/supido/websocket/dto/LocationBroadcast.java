@@ -1,5 +1,6 @@
 package com.backend.supido.websocket.dto;
 
+import com.backend.supido.order.common.enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,6 @@ public class LocationBroadcast {
     private Long deliveryPersonId;
     private double latitude;
     private double longitude;
-    private String orderStatus;
+    private Status orderStatus;
     private LocalDateTime timestamp;
 }

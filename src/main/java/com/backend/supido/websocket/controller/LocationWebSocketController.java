@@ -2,8 +2,10 @@ package com.backend.supido.websocket.controller;
 
 import com.backend.supido.deliveryPerson.domain.dto.response.DeliveryPersonResponse;
 import com.backend.supido.deliveryPerson.service.DeliveryPersonService;
+import com.backend.supido.order.common.enums.Status;
 import com.backend.supido.order.domain.entity.Order;
 import com.backend.supido.order.repository.OrderRepository;
+import com.backend.supido.orderTracking.service.OrderTrackingService;
 import com.backend.supido.websocket.dto.DriverLocationBroadcast;
 import com.backend.supido.websocket.dto.LocationBroadcast;
 import com.backend.supido.websocket.dto.LocationUpdateMessage;
@@ -22,6 +24,7 @@ public class LocationWebSocketController {
     private final SimpMessagingTemplate messagingTemplate;
     private final DeliveryPersonService deliveryPersonService;
     private final OrderRepository orderRepository;
+    private final OrderTrackingService orderTrackingService;
 
     /**
      * Drivers send their location to /app/driver/location
@@ -45,7 +48,7 @@ public class LocationWebSocketController {
                 .timestamp(message.getTimestamp())
                 .build());
 
-        List<Order> activeOrders = orderRepository.findByDeliveryPersonId(message.getDeliveryPersonId());
+        List<Order> activeOrders = orderRepository.findByDeliveryPerson_Id(message.getDeliveryPersonId());
         for (Order order : activeOrders) {
             if (isActiveStatus(order.getStatus())) {
                 LocationBroadcast broadcast = LocationBroadcast.builder()
@@ -58,11 +61,17 @@ public class LocationWebSocketController {
                         .build();
 
                 messagingTemplate.convertAndSend("/topic/tracking/" + order.getId(), broadcast);
+                orderTrackingService.upsertFromLocation(
+                        order.getId(),
+                        message.getLatitude(),
+                        message.getLongitude(),
+                        order.getStatus().name()
+                );
             }
         }
     }
 
-    private boolean isActiveStatus(String status) {
-        return "CONFIRMED".equals(status) || "PREPARING".equals(status) || "ON_THE_WAY".equals(status);
+    private boolean isActiveStatus(Status status) {
+        return status == Status.CONFIRMED || status == Status.PREPARING || status == Status.ON_THE_WAY;
     }
 }

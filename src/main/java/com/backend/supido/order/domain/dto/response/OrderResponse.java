@@ -1,11 +1,15 @@
 package com.backend.supido.order.domain.dto.response;
 
 
-import com.backend.supido.order.domain.dto.RestaurantSummaryDTO;
+import com.backend.supido.coupon.domain.dto.response.CouponResponse;
+import com.backend.supido.order.common.enums.Status;
+import com.backend.supido.common.utils.RestaurantSummaryDTO;
+import com.backend.supido.orderItem.domain.dto.response.OrderItemResponse;
 import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Builder
 public record OrderResponse(
@@ -13,8 +17,8 @@ public record OrderResponse(
         Long userId,
         RestaurantSummaryDTO restaurant,
         Long deliveryPersonId,
-        Long cuponId,
-        String status,
+        CouponResponse coupon,
+        Status status,
         String deliveryAddress,
         BigDecimal subtotal,
         BigDecimal shippingCost,
@@ -22,6 +26,11 @@ public record OrderResponse(
         BigDecimal tip,
         BigDecimal total,
         LocalDateTime createdAt,
-        LocalDateTime deliveredAt
+        LocalDateTime deliveredAt,
+        List<OrderItemResponse> items,
+        Double restaurantLatitude,
+        Double restaurantLongitude,
+        Double deliveryLatitude,
+        Double deliveryLongitude
 ) {
 }

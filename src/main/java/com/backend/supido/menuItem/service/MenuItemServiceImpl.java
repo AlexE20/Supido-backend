@@ -9,6 +9,7 @@ import com.backend.supido.restaurant.domain.entity.Restaurant;
 import com.backend.supido.exceptions.ResourceNotFoundException;
 import com.backend.supido.menuItem.repository.MenuItemRepository;
 import com.backend.supido.restaurant.repository.RestaurantRepository;
+import com.backend.supido.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,9 +25,11 @@ public class MenuItemServiceImpl implements MenuItemService {
     private final RestaurantRepository restaurantRepository;
 
     @Override
-    public MenuItemDTOResponse createMenuItem(Long restaurantId, MenuItemDTORequest request) {
+    public MenuItemDTOResponse createMenuItem(Long restaurantId, MenuItemDTORequest request, User user) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id " + restaurantId));
+
+        validateRestaurantOwnership(restaurant, user);
 
         if (menuItemRepository.existsByNameAndRestaurantId(request.name(), restaurantId)) {
             throw new IllegalArgumentException("Menu item with name '" + request.name() + "' already exists in this restaurant");
@@ -72,8 +75,10 @@ public class MenuItemServiceImpl implements MenuItemService {
     }
 
     @Override
-    public MenuItemDTOResponse updateMenuItem(Long restaurantId, Long id, MenuItemDTORequest request) {
+    public MenuItemDTOResponse updateMenuItem(Long restaurantId, Long id, MenuItemDTORequest request, User user) {
         MenuItem menuItem = findMenuItemBelongingToRestaurant(restaurantId, id);
+
+        validateRestaurantOwnership(menuItem.getRestaurant(), user);
 
         if (menuItemRepository.existsByNameAndRestaurantIdAndIdNot(request.name(), restaurantId, id)) {
             throw new IllegalArgumentException("Menu item with name '" + request.name() + "' already exists in this restaurant");
@@ -82,20 +87,21 @@ public class MenuItemServiceImpl implements MenuItemService {
         menuItem.setName(request.name());
         menuItem.setDescription(request.description());
         menuItem.setPrice(request.price());
-        menuItem.setCategory(request.category());
         menuItem.setPhotoUrl(request.photoUrl());
         return MenuItemMapper.toResponse(menuItemRepository.save(menuItem));
     }
 
     @Override
-    public void deleteMenuItem(Long restaurantId, Long id) {
-        findMenuItemBelongingToRestaurant(restaurantId, id);
+    public void deleteMenuItem(Long restaurantId, Long id, User user) {
+        MenuItem menuItem = findMenuItemBelongingToRestaurant(restaurantId, id);
+        validateRestaurantOwnership(menuItem.getRestaurant(), user);
         menuItemRepository.deleteById(id);
     }
 
     @Override
-    public MenuItemDTOResponse toggleAvailability(Long restaurantId, Long id) {
+    public MenuItemDTOResponse toggleAvailability(Long restaurantId, Long id, User user) {
         MenuItem menuItem = findMenuItemBelongingToRestaurant(restaurantId, id);
+        validateRestaurantOwnership(menuItem.getRestaurant(), user);
         menuItem.setAvailable(!menuItem.getAvailable());
         return MenuItemMapper.toResponse(menuItemRepository.save(menuItem));
     }
@@ -111,5 +117,12 @@ public class MenuItemServiceImpl implements MenuItemService {
             throw new ResourceNotFoundException("Menu item " + menuItemId + " does not belong to restaurant " + restaurantId);
         }
         return menuItem;
+    }
+
+    private void validateRestaurantOwnership(Restaurant restaurant, User user) {
+        if ("ROLE_RESTAURANT".equals(user.getRole().getName()) &&
+                !restaurant.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("You are not authorized to modify this restaurant's menu");
+        }
     }
 }

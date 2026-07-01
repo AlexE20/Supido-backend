@@ -1,5 +1,6 @@
 package com.backend.supido.order.domain.dto.request;
 
+import com.backend.supido.order.common.enums.Status;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Pattern;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 public record UpdateOrderRequest(
         Long couponId,
         String deliveryAddress,
-        String status,
+        Status status,
         Long deliveryPersonId,
         BigDecimal tip
 ) {

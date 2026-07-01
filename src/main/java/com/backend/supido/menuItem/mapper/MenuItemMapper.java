@@ -11,7 +11,6 @@ public class MenuItemMapper {
                 .name(request.name())
                 .description(request.description())
                 .price(request.price())
-                .category(request.category())
                 .photoUrl(request.photoUrl())
                 .build();
     }
@@ -22,7 +21,6 @@ public class MenuItemMapper {
                 menuItem.getName(),
                 menuItem.getDescription(),
                 menuItem.getPrice(),
-                menuItem.getCategory(),
                 menuItem.getPhotoUrl(),
                 menuItem.getAvailable()
         );

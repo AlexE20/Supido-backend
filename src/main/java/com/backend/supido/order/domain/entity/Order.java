@@ -1,6 +1,12 @@
 package com.backend.supido.order.domain.entity;
 
+import com.backend.supido.coupon.domain.entity.Coupon;
+import com.backend.supido.deliveryPerson.domain.entity.DeliveryPerson;
+import com.backend.supido.order.common.enums.Status;
+import com.backend.supido.orderItem.domain.entity.OrderItem;
 import com.backend.supido.restaurant.domain.entity.Restaurant;
+import com.backend.supido.user.domain.entity.User;
+import com.backend.supido.userAddress.domain.entity.UserAddress;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +15,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -21,24 +28,32 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "userId")
-    private long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="user_id", nullable = false)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id")
     private Restaurant restaurant;
 
-    @Column(name = "deliveryPersonId")
-    private Long deliveryPersonId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "deliveryPersonId")
+    private DeliveryPerson deliveryPerson;
 
-    @Column(name = "CouponId")
-    private Long couponId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CouponId")
+    private Coupon coupon;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private Status status;
 
     @Column(name = "deliveryAddress")
     private String deliveryAddress;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_addres_id")
+    private UserAddress userAddress;
 
     @Column(name = "subtotal")
     private BigDecimal subtotal;
@@ -60,4 +75,7 @@ public class Order {
 
     @Column(name = "deliveredAt")
     private LocalDateTime deliveredAt;
+
+    @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
+    private List<OrderItem> items;
 }
