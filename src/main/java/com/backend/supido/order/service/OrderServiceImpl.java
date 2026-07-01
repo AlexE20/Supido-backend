@@ -116,8 +116,7 @@ public class OrderServiceImpl implements OrderService {
 
         // Aplicar cupón si existe
         if (request.couponId() != null) {
-            BigDecimal discount = applyCoupon(request.couponId(), subtotal);
-            saved.setDiscount(discount);
+            applyCoupon(request.couponId(), subtotal, saved);
         }
         // Calcular total con lo que tenemos por ahora (sin shippingCost todavia)
         BigDecimal tip = request.tip() != null ? request.tip() : BigDecimal.ZERO;
@@ -197,12 +196,12 @@ public class OrderServiceImpl implements OrderService {
 
         // cupón antes del cálculo
         if (request.couponId() != null) {
-            if (existing.getCouponId() != null) {
+            if (existing.getCoupon() != null) {
                 throw new IllegalArgumentException("Order already has a coupon applied");
             }
-            BigDecimal discount = applyCoupon(request.couponId(), existing.getSubtotal());
-            updated.setDiscount(discount);
-            updated.setCouponId(request.couponId());
+            applyCoupon(request.couponId(), existing.getSubtotal(), updated);
+        } else {
+            updated.setCoupon(existing.getCoupon());
         }
 
         // recalcular total con discount ya actualizado
@@ -480,21 +479,21 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
-    //possible util
-    private BigDecimal applyCoupon(Long couponId, BigDecimal subtotal) {
+    private void applyCoupon(Long couponId, BigDecimal subtotal, Order order) {
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new ResourceNotFoundException("Coupon not found with id: " + couponId));
         if (!coupon.getActive()) {
             throw new IllegalArgumentException("Coupon is not active");
         }
-        if (coupon.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (coupon.getExpiresAt() == null || coupon.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Coupon has expired");
         }
         BigDecimal discount = subtotal.multiply(coupon.getValue()
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
+        order.setDiscount(discount);
+        order.setCoupon(coupon);
         coupon.setActive(false);
         couponRepository.save(coupon);
-        return discount;
     }
 
     private PageableResponse<OrderResponse> buildPageableResponse(Page<Order> orderPage) {

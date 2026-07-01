@@ -57,9 +57,20 @@ public class CouponServiceImpl implements CouponServices{
         Coupon existing = couponRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Coupon not found with id: " + id));
 
-        Coupon updated = CouponMapper.toEntityUpdate(request);
-        updated.setId(existing.getId());
-        return CouponMapper.toDto(couponRepository.save(updated));
+        if (request.code() != null) existing.setCode(request.code());
+        if (request.value() != null) existing.setValue(request.value());
+        if (request.expiresAt() != null) existing.setExpiresAt(request.expiresAt());
+        if (request.active() != null) existing.setActive(request.active());
+
+        return CouponMapper.toDto(couponRepository.save(existing));
+    }
+
+    @Override
+    public CouponResponse toggleActive(Long id) {
+        Coupon coupon = couponRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Coupon not found with id: " + id));
+        coupon.setActive(!coupon.getActive());
+        return CouponMapper.toDto(couponRepository.save(coupon));
     }
 
     @Override

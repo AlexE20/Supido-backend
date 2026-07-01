@@ -2,6 +2,7 @@ package com.backend.supido.order.common.mappers;
 
 import com.backend.supido.common.utils.RestaurantSummaryDTO;
 import com.backend.supido.common.utils.RestaurantUtils;
+import com.backend.supido.coupon.mapper.CouponMapper;
 import com.backend.supido.order.domain.dto.request.CreateOrderRequest;
 import com.backend.supido.order.domain.dto.request.UpdateOrderRequest;
 import com.backend.supido.order.domain.dto.response.OrderResponse;
@@ -25,17 +26,14 @@ public class OrderMapper {
         return Order.builder()
                 .user(user)
                 .restaurant(restaurant)
-                .couponId(request.couponId())
                 .userAddress(userAddress)
                 .deliveryAddress(userAddress.getCity() + " " + userAddress.getStreet())
                 .tip(request.tip())
                 .build();
-
     }
 
     public static Order toEntityUpdate(UpdateOrderRequest request) {
         return Order.builder()
-                .couponId(request.couponId())
                 .deliveryAddress(request.deliveryAddress())
                 .status(request.status())
                 .tip(request.tip())
@@ -60,7 +58,7 @@ public class OrderMapper {
                 order.getUser().getId(),
                 restaurantSummary,
                 order.getDeliveryPerson() != null ? order.getDeliveryPerson().getId() : null,
-                order.getCouponId(),
+                order.getCoupon() != null ? CouponMapper.toDto(order.getCoupon()) : null,
                 order.getStatus(),
                 order.getDeliveryAddress(),
                 order.getSubtotal(),
@@ -95,7 +93,7 @@ public class OrderMapper {
                 order.getUser().getId(),
                 restaurantSummary,
                 order.getDeliveryPerson() != null ? order.getDeliveryPerson().getId() : null,
-                order.getCouponId(),
+                order.getCoupon() != null ? CouponMapper.toDto(order.getCoupon()) : null,
                 order.getStatus(),
                 order.getDeliveryAddress(),
                 order.getSubtotal(),

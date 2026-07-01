@@ -28,6 +28,7 @@ public class CouponController {
         return buildResponse("Coupon created successfully", HttpStatus.CREATED, couponService.create(request));
     }
 
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
     @GetMapping("/{id}")
     public ResponseEntity<GeneralResponse> findById(@PathVariable Long id) {
         return buildResponse("Coupon retrieved successfully", HttpStatus.OK, couponService.findById(id));
@@ -36,6 +37,12 @@ public class CouponController {
     @GetMapping("/code/{code}")
     public ResponseEntity<GeneralResponse> findByCode(@PathVariable String code) {
         return buildResponse("Coupon retrieved successfully", HttpStatus.OK, couponService.findByCode(code));
+    }
+
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")
+    @PatchMapping("/{id}/toggle")
+    public ResponseEntity<GeneralResponse> toggleActive(@PathVariable Long id) {
+        return buildResponse("Coupon status toggled successfully", HttpStatus.OK, couponService.toggleActive(id));
     }
 
     @PreAuthorize("hasRole('RESTAURANT') or hasRole('SUPER')")

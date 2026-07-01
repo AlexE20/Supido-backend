@@ -1,5 +1,6 @@
 package com.backend.supido.order.domain.entity;
 
+import com.backend.supido.coupon.domain.entity.Coupon;
 import com.backend.supido.deliveryPerson.domain.entity.DeliveryPerson;
 import com.backend.supido.order.common.enums.Status;
 import com.backend.supido.orderItem.domain.entity.OrderItem;
@@ -39,8 +40,9 @@ public class Order {
     @JoinColumn(name = "deliveryPersonId")
     private DeliveryPerson deliveryPerson;
 
-    @Column(name = "CouponId")
-    private Long couponId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CouponId")
+    private Coupon coupon;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
